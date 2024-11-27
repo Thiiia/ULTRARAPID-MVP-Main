@@ -1,28 +1,57 @@
 ﻿using UnityEngine;
+using Sirenix.OdinInspector;
 using System.Collections;
 
 public class XplorerGuitarInput : MonoBehaviour
 {
+    [Header("Debug Settings")]
     public bool DebugController = false;
 
+    [FoldoutGroup("Button Mappings")]
     public int A;
+    [FoldoutGroup("Button Mappings")]
     public int B;
+    [FoldoutGroup("Button Mappings")]
     public int X;
+    [FoldoutGroup("Button Mappings")]
     public int Y;
+    [FoldoutGroup("Button Mappings")]
     public int START;
+    [FoldoutGroup("Button Mappings")]
     public int SELECT;
+
+    [FoldoutGroup("D-Pad Settings")]
     public int DPadLeft = 0;
+    [FoldoutGroup("D-Pad Settings")]
     public int DPadRight = 0;
+    [FoldoutGroup("D-Pad Settings")]
     public int DPadUp = 0;
+    [FoldoutGroup("D-Pad Settings")]
     public int DPadDown = 0;
+
+    [FoldoutGroup("Shoulder Buttons")]
     public int rightShoulder;
+    [FoldoutGroup("Shoulder Buttons")]
     public int leftShoulder;
+
+    [FoldoutGroup("Strum Settings")]
     public int strum = 0;
 
+    // Visual state indicators for keys
+    [FoldoutGroup("Key States")]
+    [GUIColor(0f, 1f, 0f)] // Green for pressed
     public bool green;
+    [FoldoutGroup("Key States")]
+    [GUIColor(1f, 0f, 0f)] // Red for pressed
     public bool red;
+    [FoldoutGroup("Key States")]
+    [GUIColor(1f, 1f, 0f)] // Yellow for pressed
     public bool yellow;
+    [FoldoutGroup("Key States")]
+    [GUIColor(0f, 0f, 1f)] // Blue for pressed
     public bool blue;
+    [FoldoutGroup("Key States")]
+    [GUIColor(1f, 0.647f, 0f)] // Orange for pressed
     public bool orange;
 
     // Update is called once per frame
@@ -31,6 +60,7 @@ public class XplorerGuitarInput : MonoBehaviour
         // GetControllerInput(); <---- disabled for now
         GetKeyboardInput();
     }
+
     // Retrieves the current keyboard input.
     private void GetKeyboardInput()
     {
@@ -90,7 +120,6 @@ public class XplorerGuitarInput : MonoBehaviour
         {
             tempLeft = true;
         }
-
         else if (dplr == 1)
         {
             tempRight = true;
@@ -100,7 +129,6 @@ public class XplorerGuitarInput : MonoBehaviour
         {
             tempDown = true;
         }
-
         else if (dpud == 1)
         {
             tempUp = true;
@@ -112,7 +140,6 @@ public class XplorerGuitarInput : MonoBehaviour
         DPadDown = returnState(tempDown, DPadDown);
         DPadUp = returnState(tempUp, DPadUp);
     }
-
 
     /* The return state method checks at which state the controller currently is.
      * 0 = no input.

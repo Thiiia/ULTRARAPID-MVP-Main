@@ -920,20 +920,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1678a9349ecad304888edad26a04be52, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  difficulty: 3
+  difficulty: 1
   _speed: 16
+  _path: \Sound\Music\Charts\Papercut.chart
   _solidNotes:
   - {fileID: 4400627473677722, guid: 1045ea66b790bf540bcf5df207972c83, type: 3}
   - {fileID: 4626359991842112, guid: 01b9310d07202bd43aae6dead229c865, type: 3}
   - {fileID: 4014135116710048, guid: 43388091a96bce747b5c4c4f122ae893, type: 3}
   - {fileID: 4413157362768838, guid: 86d778fe174d8eb4488e45e7189f9b26, type: 3}
   - {fileID: 4504917627061404, guid: 4dcbeed3cf1d49244a2db3bcfbd18bd8, type: 3}
-  _path: \Sound\Music\Charts\Papercut.chart
-  _cameraMovement: {fileID: 535378776}
-  _music: {fileID: 2054393832}
   _starPowerPrefab: {fileID: 4109334711829988, guid: 11bbda1d49dc14b489fa8a659b8ad58c, type: 3}
   _sectionPrefab: {fileID: 4622555703069306, guid: c851ea94b3f3a3e4cb465aa97217e19d, type: 3}
   _bpmPrefab: {fileID: 4322006517868176, guid: 44c73da133c080a4fbf59de2fd61ac91, type: 3}
+  _music: {fileID: 2054393832}
+  _cameraMovement: {fileID: 535378776}
 --- !u!4 &604001353
 Transform:
   m_ObjectHideFlags: 0
@@ -1671,7 +1671,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Expert Guitar
+  m_Text: Medium Guitar
 --- !u!222 &1663340349
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1826,20 +1826,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1678a9349ecad304888edad26a04be52, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  difficulty: 7
+  difficulty: 5
   _speed: 8
+  _path: \Sound\Music\Charts\Papercut.chart
   _solidNotes:
   - {fileID: 4400627473677722, guid: 1045ea66b790bf540bcf5df207972c83, type: 3}
   - {fileID: 4626359991842112, guid: 01b9310d07202bd43aae6dead229c865, type: 3}
   - {fileID: 4014135116710048, guid: 43388091a96bce747b5c4c4f122ae893, type: 3}
   - {fileID: 4413157362768838, guid: 86d778fe174d8eb4488e45e7189f9b26, type: 3}
   - {fileID: 4504917627061404, guid: 4dcbeed3cf1d49244a2db3bcfbd18bd8, type: 3}
-  _path: \Sound\Music\Charts\Papercut.chart
-  _cameraMovement: {fileID: 362522265}
-  _music: {fileID: 2054393832}
   _starPowerPrefab: {fileID: 4109334711829988, guid: 11bbda1d49dc14b489fa8a659b8ad58c, type: 3}
   _sectionPrefab: {fileID: 4622555703069306, guid: c851ea94b3f3a3e4cb465aa97217e19d, type: 3}
   _bpmPrefab: {fileID: 4322006517868176, guid: 44c73da133c080a4fbf59de2fd61ac91, type: 3}
+  _music: {fileID: 2054393832}
+  _cameraMovement: {fileID: 362522265}
 --- !u!4 &1800526939
 Transform:
   m_ObjectHideFlags: 0
@@ -1925,7 +1925,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Expert Drums
+  m_Text: Medium Drums
 --- !u!222 &1807442000
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2109,7 +2109,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: d91b2adb355683a468a13cc62eb40509, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 667a8323d6d7c394abdc5b9c20fc29c5, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1

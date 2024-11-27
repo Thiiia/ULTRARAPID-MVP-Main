@@ -37,7 +37,7 @@ public class ChartLoaderTest : MonoBehaviour
 
     #region Game Settings
     [TabGroup("General Settings")]
-    [SerializeField, Range(0.1f, 5f), Tooltip("The game speed.")]
+    [SerializeField, Range(1f, 20f), Tooltip("The game speed.")]
     private float _speed = 1f;
     /// <summary>
     /// The game speed.

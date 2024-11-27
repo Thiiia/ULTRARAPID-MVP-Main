@@ -1,18 +1,23 @@
 ﻿using UnityEngine;
-
 using ChartLoader.NET.Framework;
 using ChartLoader.NET.Utils;
+using Sirenix.OdinInspector;  // Import Odin namespace
 
-public class ChartLoaderTest : MonoBehaviour {
-
+public class ChartLoaderTest : MonoBehaviour
+{
+    #region Chart Settings
     /// <summary>
     /// The current associated chart.
     /// </summary>
+    [TabGroup("Chart Settings")]
     public static Chart Chart;
+    #endregion
 
+    #region Difficulty Settings
     /// <summary>
     /// Enumerator for all major difficulties.
     /// </summary>
+    [TabGroup("Difficulty Settings")]
     public enum Difficulty
     {
         EasyGuitar,
@@ -25,42 +30,25 @@ public class ChartLoaderTest : MonoBehaviour {
         ExpertDrums
     }
 
-    public Difficulty difficulty;
-
+    [TabGroup("Difficulty Settings")]
     [SerializeField]
+    private Difficulty difficulty;
+    #endregion
+
+    #region Game Settings
+    [TabGroup("General Settings")]
+    [SerializeField, Range(0.1f, 5f), Tooltip("The game speed.")]
     private float _speed = 1f;
     /// <summary>
     /// The game speed.
     /// </summary>
     public float Speed
     {
-        get
-        {
-            return _speed;
-        }
-        set
-        {
-            _speed = value;
-        }
+        get { return _speed; }
+        set { _speed = value; }
     }
 
-    [SerializeField]
-    private Transform[] _solidNotes;
-    /// <summary>
-    /// The note prefabs to be instantiated.
-    /// </summary>
-    public Transform[] SolidNotes
-    {
-        get 
-        { 
-            return _solidNotes; 
-        }
-        set 
-        { 
-            _solidNotes = value; 
-        }
-    }
-
+    [TabGroup("General Settings")]
     [SerializeField]
     private string _path;
     /// <summary>
@@ -68,123 +56,108 @@ public class ChartLoaderTest : MonoBehaviour {
     /// </summary>
     public string Path
     {
-        get 
-        {
-            return _path; 
-        }
-        set 
-        {
-            _path = value; 
-        }
+        get { return _path; }
+        set { _path = value; }
     }
+    #endregion
 
-    [SerializeField]
-    private CameraMovement _cameraMovement;
+    #region Prefab Settings
+    [TabGroup("Prefab Settings")]
+    [SerializeField, Tooltip("The note prefabs to be instantiated.")]
+    private Transform[] _solidNotes;
     /// <summary>
-    /// Camera movement aggregation.
+    /// The note prefabs to be instantiated.
     /// </summary>
-    public CameraMovement CameraMovement
+    public Transform[] SolidNotes
     {
-        get 
-        { 
-            return _cameraMovement; 
-        }
-        set 
-        { 
-            _cameraMovement = value; 
-        }
+        get { return _solidNotes; }
+        set { _solidNotes = value; }
     }
 
-    [SerializeField]
-    private AudioSource _music;
-    /// <summary>
-    /// The music audio source.
-    /// </summary>
-    public AudioSource Music
-    {
-        get 
-        { 
-            return _music; 
-        }
-        set 
-        { 
-            _music = value; 
-        }
-    }
-
-    [SerializeField]
+    [TabGroup("Prefab Settings")]
+    [SerializeField, Tooltip("Prefab for star power.")]
     private Transform _starPowerPrefab;
     /// <summary>
     /// The star power prefab instantiated should there be any star power at all.
     /// </summary>
     public Transform StarPowerPrefab
     {
-        get 
-        { 
-            return _starPowerPrefab; 
-        }
-        set 
-        { 
-            _starPowerPrefab = value; 
-        }
+        get { return _starPowerPrefab; }
+        set { _starPowerPrefab = value; }
     }
 
-    [SerializeField]
+    [TabGroup("Prefab Settings")]
+    [SerializeField, Tooltip("Prefab for sections.")]
     private Transform _sectionPrefab;
     /// <summary>
     /// The section prefab instantiated should there be any sections at all.
     /// </summary>
     public Transform SectionPrefab
     {
-        get
-        {
-            return _sectionPrefab;
-        }
-        set
-        {
-            _sectionPrefab = value;
-        }
+        get { return _sectionPrefab; }
+        set { _sectionPrefab = value; }
     }
 
-    [SerializeField]
+    [TabGroup("Prefab Settings")]
+    [SerializeField, Tooltip("Prefab for BPM.")]
     private Transform _bpmPrefab;
     /// <summary>
     /// The BPM prefab instantiated should there be any sections at all.
     /// </summary>
     public Transform BpmPrefab
     {
-        get
-        {
-            return _bpmPrefab;
-        }
-        set
-        {
-            _bpmPrefab = value;
-        }
+        get { return _bpmPrefab; }
+        set { _bpmPrefab = value; }
     }
-    
+    #endregion
 
-	// Use this for initialization
-	void Start ()
+    #region Audio & Camera Settings
+    [TabGroup("Audio & Camera")]
+    [SerializeField, Tooltip("The music audio source.")]
+    private AudioSource _music;
+    /// <summary>
+    /// The music audio source.
+    /// </summary>
+    public AudioSource Music
+    {
+        get { return _music; }
+        set { _music = value; }
+    }
+
+    [TabGroup("Audio & Camera")]
+    [SerializeField, Tooltip("Camera movement aggregation.")]
+    private CameraMovement _cameraMovement;
+    /// <summary>
+    /// Camera movement aggregation.
+    /// </summary>
+    public CameraMovement CameraMovement
+    {
+        get { return _cameraMovement; }
+        set { _cameraMovement = value; }
+    }
+    #endregion
+
+    #region Start and Initialization
+    void Start()
     {
         string currentDifficulty;
 
+        // Read chart file
         ChartReader chartReader = new ChartReader();
         Chart = chartReader.ReadChartFile(Application.dataPath + Path);
 
+        // Retrieve difficulty and spawn notes
         currentDifficulty = RetrieveDifficulty();
 
         SpawnNotes(Chart.GetNotes(currentDifficulty));
-
         SpawnStarPower(Chart.GetStarPower(currentDifficulty));
-
-        //SpawnSections(Chart.Sections);
-
         SpawnSynchTracks(Chart.SynchTracks);
 
         StartSong();
-	}
+    }
+    #endregion
 
+    #region Difficulty Handling
     /// <summary>
     /// Retrieves the string enumerator version.
     /// </summary>
@@ -225,24 +198,9 @@ public class ChartLoaderTest : MonoBehaviour {
 
         return result;
     }
+    #endregion
 
-    /// <summary>
-    /// Spawns all sections related to this chart.
-    /// </summary>
-    /// <param name="events">The events to be spawned.</param>
-    private void SpawnSections(Section[] events)
-    {
-        Transform tmp;
-        foreach (Section section in events)
-        {
-            tmp = SpawnPrefab(SectionPrefab, 
-                transform, 
-                new Vector3(-2.5f, 0, section.Seconds * Speed)
-                );
-            tmp.GetChild(0).GetComponent<TextMesh>().text = section.SectionName;
-        }
-    }
-
+    #region Spawn Methods
     /// <summary>
     /// Spawns a synch track.
     /// </summary>
@@ -297,10 +255,9 @@ public class ChartLoaderTest : MonoBehaviour {
             }
         }
     }
-	
-    /// <summary>
-    /// Starts playing the song.
-    /// </summary>
+    #endregion
+
+    #region Helper Methods
     private void StartSong()
     {
         CameraMovement.Speed = Speed;
@@ -308,50 +265,22 @@ public class ChartLoaderTest : MonoBehaviour {
         PlayMusic();
     }
 
-    /// <summary>
-    /// Plays the current song.
-    /// </summary>
-    private void PlayMusic()
-    {
-        Music.Play();
-    }
+    private void PlayMusic() => Music.Play();
 
-    /// <summary>
-    /// Spawns a prefab in world space.
-    /// </summary>
-    /// <param name="prefab">The prefab you would like to instantiate.</param>
-    /// <param name="parent">The parent of the prefab.</param>
-    /// <param name="position">The world position of the prefab.</param>
-    /// <returns>Transform</returns>
-    private Transform SpawnPrefab(Transform prefab, 
-        Transform parent, 
-        Vector3 position)
+    private Transform SpawnPrefab(Transform prefab, Transform parent, Vector3 position)
     {
         Transform tmp;
-
         tmp = Instantiate(prefab);
         tmp.SetParent(parent);
         tmp.localPosition = position;
-
         return tmp;
     }
 
-    /// <summary>
-    /// Sets the length of the long note.
-    /// </summary>
-    /// <param name="note">The long note to be modified.</param>
-    /// <param name="length">The length of the long note.</param>
     private void SetLongNoteScale(Transform note, float length)
     {
-
         note.localScale = new Vector3(note.localScale.x, note.localScale.y, length);
     }
 
-    /// <summary>
-    /// Sets the note color brighter if it is a hammer on.
-    /// </summary>
-    /// <param name="note">The note you would like to edit.</param>
-    /// <param name="isHammerOn">Is the current note a hammer on?</param>
     private void SetHammerOnColor(Transform note, bool isHammerOn)
     {
         SpriteRenderer re;
@@ -364,10 +293,6 @@ public class ChartLoaderTest : MonoBehaviour {
         }
     }
 
-    /// <summary>
-    /// Sets the note to be HOPO note.
-    /// </summary>
-    /// <param name="note">The note you would like to edit.</param>
     private void SetHOPO(Transform note)
     {
         SpriteRenderer re;
@@ -375,6 +300,6 @@ public class ChartLoaderTest : MonoBehaviour {
         re = note.GetComponent<SpriteRenderer>();
         color = re.color;
         re.color = new Color(0.75f, 0, 0.75f);
-
     }
+    #endregion
 }

@@ -28,7 +28,32 @@ public class XplorerGuitarInput : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        GetControllerInput();
+        // GetControllerInput(); <---- disabled for now
+        GetKeyboardInput();
+    }
+    // Retrieves the current keyboard input.
+    private void GetKeyboardInput()
+    {
+        green = Input.GetKey(KeyCode.A);          // Corresponds to the 'A' button
+        red = Input.GetKey(KeyCode.S);            // Corresponds to the 'B' button
+        yellow = Input.GetKey(KeyCode.D);         // Corresponds to the 'Y' button
+        blue = Input.GetKey(KeyCode.F);           // Corresponds to the 'X' button
+        orange = Input.GetKey(KeyCode.LeftShift); // Corresponds to 'Left Shoulder'
+
+        A = returnState(green, A);
+        B = returnState(red, B);
+        X = returnState(blue, X);
+        Y = returnState(yellow, Y);
+        START = returnState(Input.GetKey(KeyCode.Return), START);      // Enter key for START
+        SELECT = returnState(Input.GetKey(KeyCode.Backspace), SELECT); // Backspace for SELECT
+        rightShoulder = returnState(Input.GetKey(KeyCode.RightShift), rightShoulder); // Right Shoulder mapped to Right Shift
+        leftShoulder = returnState(orange, leftShoulder);
+
+        // Manage arrow keys for D-pad input
+        DPadLeft = returnState(Input.GetKey(KeyCode.LeftArrow), DPadLeft);
+        DPadRight = returnState(Input.GetKey(KeyCode.RightArrow), DPadRight);
+        DPadUp = returnState(Input.GetKey(KeyCode.UpArrow), DPadUp);
+        DPadDown = returnState(Input.GetKey(KeyCode.DownArrow), DPadDown);
     }
 
     // Retrieves the current controller input.
@@ -119,7 +144,7 @@ public class XplorerGuitarInput : MonoBehaviour
     // Debugging Controller
     private void OnGUI()
     {
-        if(DebugController)
+        if (DebugController)
         {
             string tmp;
 

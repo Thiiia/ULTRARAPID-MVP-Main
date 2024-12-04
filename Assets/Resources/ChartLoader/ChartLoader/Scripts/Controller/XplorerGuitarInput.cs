@@ -179,8 +179,7 @@ public class XplorerGuitarInput : MonoBehaviour
                 "  Green: " + green + "\n" +
                 "  Red: " + red + "\n" +
                 "  Yellow: " + yellow + "\n" +
-                "  Blue: " + blue + "\n" +
-                "  Orange: " + orange + "\n";
+                "  Blue: " + blue ;
 
             GUI.Label(new Rect(0, 0, Screen.height, Screen.width), tmp);
         }

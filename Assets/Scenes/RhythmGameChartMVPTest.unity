@@ -1949,7 +1949,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   difficulty: 0
-  _speed: 4
+  _speed: 13.6
   _path: \Sound\Music\Charts\Papercut.chart
   _solidNotes:
   - {fileID: 4400627473677722, guid: 1045ea66b790bf540bcf5df207972c83, type: 3}
@@ -4412,7 +4412,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.6037736, g: 0.6037736, b: 0.6037736, a: 1}
+  m_Color: {r: 0.6037736, g: 0.6037736, b: 0.6037736, a: 0.5882353}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -5031,10 +5031,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 2.4636247
+  m_Radius: 1.7901231
   m_Height: 4.89
   m_Direction: 1
-  m_Center: {x: 0.0000000065448007, y: -0.00000037235222, z: 0.6708994}
+  m_Center: {x: 0.49272904, y: 3.711078, z: 13.721195}
 --- !u!212 &1630143346
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -5517,7 +5517,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   difficulty: 4
-  _speed: 2
+  _speed: 12.4
   _path: \Sound\Music\Charts\Papercut.chart
   _solidNotes:
   - {fileID: 4400627473677722, guid: 1045ea66b790bf540bcf5df207972c83, type: 3}
@@ -5707,7 +5707,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f2585cac651064d449d6ad384ab56f7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DebugController: 1
+  DebugController: 0
   A: 0
   B: 0
   X: 0

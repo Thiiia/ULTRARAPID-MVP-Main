@@ -146,7 +146,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0.38268343, y: 0, z: 0, w: 0.92387956}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.325, y: 1.325, z: 1.325}
+  m_LocalScale: {x: 0.125, y: 0.125, z: 0.125}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 4641819623506930}
@@ -194,8 +194,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: -1
-  m_Sprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
-  m_Color: {r: 0.36551726, g: 1, b: 0, a: 1}
+  m_Sprite: {fileID: 21300000, guid: a5bbabb51d480c34184a18557a3280f9, type: 3}
+  m_Color: {r: 0.36470604, g: 1, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -304,8 +304,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.0026, y: -0.0013}
-  m_SizeDelta: {x: 0.179, y: 0.1724}
+  m_AnchoredPosition: {x: 0.0332, y: -0.0979}
+  m_SizeDelta: {x: 1.5831, y: 0.9381}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &8499112257734792828
 MeshRenderer:

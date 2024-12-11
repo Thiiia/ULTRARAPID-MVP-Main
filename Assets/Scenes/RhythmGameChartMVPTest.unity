@@ -3773,8 +3773,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 10}
-  m_LocalScale: {x: 8.78, y: 70.7085, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 9.86074, y: 79.412094, z: 0.029612755}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 535378777}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
@@ -3819,14 +3819,14 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: -2
-  m_Sprite: {fileID: 21300000, guid: c8244dbfbadee414d80f411f2861a23e, type: 3}
-  m_Color: {r: 0.125, g: 0.125, b: 0.125, a: 1}
+  m_Sprite: {fileID: 21300000, guid: aa2aa91b850f140499fc7a569410de33, type: 3}
+  m_Color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   m_FlipX: 0
   m_FlipY: 0
-  m_DrawMode: 0
+  m_DrawMode: 2
   m_Size: {x: 0.54, y: 0.54}
-  m_AdaptiveModeThreshold: 0.5
-  m_SpriteTileMode: 0
+  m_AdaptiveModeThreshold: 0.38
+  m_SpriteTileMode: 1
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
@@ -5516,8 +5516,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1678a9349ecad304888edad26a04be52, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  difficulty: 4
-  _speed: 12.4
+  difficulty: 6
+  _speed: 2
   _path: \Sound\Music\Charts\Papercut.chart
   _solidNotes:
   - {fileID: 4400627473677722, guid: 1045ea66b790bf540bcf5df207972c83, type: 3}
@@ -6144,7 +6144,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 10}
-  m_LocalScale: {x: 8.78, y: 70.7085, z: 1}
+  m_LocalScale: {x: 0.25646758, y: 2.0654256, z: 0.00077019696}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 362522266}
@@ -6190,14 +6190,14 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: -2
-  m_Sprite: {fileID: 21300000, guid: c8244dbfbadee414d80f411f2861a23e, type: 3}
-  m_Color: {r: 0.125, g: 0.125, b: 0.125, a: 1}
+  m_Sprite: {fileID: 21300000, guid: aa2aa91b850f140499fc7a569410de33, type: 3}
+  m_Color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
   m_Size: {x: 0.54, y: 0.54}
   m_AdaptiveModeThreshold: 0.5
-  m_SpriteTileMode: 0
+  m_SpriteTileMode: 1
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0

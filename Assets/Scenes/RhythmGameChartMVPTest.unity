@@ -1949,7 +1949,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   difficulty: 0
-  _speed: 13.6
+  _speed: 3.4
   _path: \Sound\Music\Charts\Papercut.chart
   _solidNotes:
   - {fileID: 4400627473677722, guid: 1045ea66b790bf540bcf5df207972c83, type: 3}
@@ -2867,6 +2867,8 @@ GameObject:
   - component: {fileID: 915714445}
   - component: {fileID: 915714447}
   - component: {fileID: 915714446}
+  - component: {fileID: 915714448}
+  - component: {fileID: 915714449}
   m_Layer: 0
   m_Name: Noteblock Red
   m_TagString: Untagged
@@ -2883,7 +2885,7 @@ Transform:
   m_GameObject: {fileID: 915714444}
   serializedVersion: 2
   m_LocalRotation: {x: 0.880595, y: -0.014880427, z: -0.0482647, w: 0.47117034}
-  m_LocalPosition: {x: -0.48, y: -16.49, z: 1.56}
+  m_LocalPosition: {x: -0.31, y: 0, z: 0.51}
   m_LocalScale: {x: 0.4970403, y: 0.9274215, z: 0.48998454}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2899,7 +2901,7 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 4294967295
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -2908,10 +2910,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 2.702275
-  m_Height: 4.8899994
+  m_Radius: 1.15
+  m_Height: 2.56
   m_Direction: 1
-  m_Center: {x: -0.0000039580814, y: 0.000000013185632, z: 0.4288143}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!212 &915714447
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -2964,6 +2966,46 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!54 &915714448
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 915714444}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &915714449
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 915714444}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 409303b04241cd846899f0da2e419316, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  refToNoteBlock: {fileID: 1208774786}
 --- !u!1 &1021097098
 GameObject:
   m_ObjectHideFlags: 0
@@ -3109,6 +3151,8 @@ GameObject:
   - component: {fileID: 1027368593}
   - component: {fileID: 1027368594}
   - component: {fileID: 1027368595}
+  - component: {fileID: 1027368596}
+  - component: {fileID: 1027368597}
   m_Layer: 0
   m_Name: Noteblock Green
   m_TagString: Untagged
@@ -3125,7 +3169,7 @@ Transform:
   m_GameObject: {fileID: 1027368592}
   serializedVersion: 2
   m_LocalRotation: {x: 0.72567344, y: -0.015119061, z: 0.009706489, w: 0.68780476}
-  m_LocalPosition: {x: -1.73, y: -0.27, z: 1.56}
+  m_LocalPosition: {x: -1.51, y: 0, z: 1.25}
   m_LocalScale: {x: 0.37439075, y: 0.6985713, z: 0.3690761}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3193,7 +3237,7 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 4294967295
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -3202,10 +3246,50 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 2.4636247
-  m_Height: 4.89
+  m_Radius: 1.15
+  m_Height: 2.56
   m_Direction: 1
-  m_Center: {x: 0.0000000065448007, y: -0.00000037235222, z: 0.6708994}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!54 &1027368596
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1027368592}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &1027368597
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1027368592}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 409303b04241cd846899f0da2e419316, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  refToNoteBlock: {fileID: 1757408083}
 --- !u!1 &1051918490
 GameObject:
   m_ObjectHideFlags: 0
@@ -3478,6 +3562,7 @@ MonoBehaviour:
   - {fileID: 915714444}
   - {fileID: 1372634444}
   - {fileID: 2022322346}
+  BlockType: 1
 --- !u!1 &1223628369
 GameObject:
   m_ObjectHideFlags: 0
@@ -3925,6 +4010,8 @@ GameObject:
   - component: {fileID: 1372634445}
   - component: {fileID: 1372634447}
   - component: {fileID: 1372634446}
+  - component: {fileID: 1372634448}
+  - component: {fileID: 1372634449}
   m_Layer: 0
   m_Name: Noteblock Yellow
   m_TagString: Untagged
@@ -3941,7 +4028,7 @@ Transform:
   m_GameObject: {fileID: 1372634444}
   serializedVersion: 2
   m_LocalRotation: {x: 0.8820367, y: 0.008026179, z: 0.014823658, w: 0.47087917}
-  m_LocalPosition: {x: 1.028, y: -16.5, z: 1.561}
+  m_LocalPosition: {x: 0.79, y: 0, z: 0.51}
   m_LocalScale: {x: 0.4762937, y: 0.8887108, z: 0.46953246}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3957,7 +4044,7 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 4294967295
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -3966,10 +4053,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 2.56881
-  m_Height: 4.890001
+  m_Radius: 1.15
+  m_Height: 2.56
   m_Direction: 1
-  m_Center: {x: -2.9777225e-10, y: -0.0000000012509089, z: 0.56420064}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!212 &1372634447
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -4022,6 +4109,46 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!54 &1372634448
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1372634444}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &1372634449
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1372634444}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 409303b04241cd846899f0da2e419316, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  refToNoteBlock: {fileID: 1208774786}
 --- !u!1 &1389118214
 GameObject:
   m_ObjectHideFlags: 0
@@ -4448,6 +4575,8 @@ GameObject:
   - component: {fileID: 1468845763}
   - component: {fileID: 1468845764}
   - component: {fileID: 1468845765}
+  - component: {fileID: 1468845766}
+  - component: {fileID: 1468845767}
   m_Layer: 0
   m_Name: Noteblock Yellow
   m_TagString: Untagged
@@ -4464,7 +4593,7 @@ Transform:
   m_GameObject: {fileID: 1468845762}
   serializedVersion: 2
   m_LocalRotation: {x: 0.72588146, y: 0.00926886, z: -0.0065277014, w: 0.6877263}
-  m_LocalPosition: {x: 0.61, y: -0.28, z: 1.59}
+  m_LocalPosition: {x: 0.53, y: 0, z: 1.25}
   m_LocalScale: {x: 0.38136354, y: 0.7115817, z: 0.37594986}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4532,7 +4661,7 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 4294967295
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -4541,10 +4670,50 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 2.56881
-  m_Height: 4.890001
+  m_Radius: 1.15
+  m_Height: 2.56
   m_Direction: 1
-  m_Center: {x: -2.9777225e-10, y: -0.0000000012509089, z: 0.56420064}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!54 &1468845766
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1468845762}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &1468845767
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1468845762}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 409303b04241cd846899f0da2e419316, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  refToNoteBlock: {fileID: 1757408083}
 --- !u!1 &1533023460
 GameObject:
   m_ObjectHideFlags: 0
@@ -4677,6 +4846,8 @@ GameObject:
   - component: {fileID: 1546648466}
   - component: {fileID: 1546648467}
   - component: {fileID: 1546648468}
+  - component: {fileID: 1546648469}
+  - component: {fileID: 1546648470}
   m_Layer: 0
   m_Name: Noteblock Red
   m_TagString: Untagged
@@ -4693,7 +4864,7 @@ Transform:
   m_GameObject: {fileID: 1546648465}
   serializedVersion: 2
   m_LocalRotation: {x: 0.725598, y: -0.0110117085, z: 0.0038538727, w: 0.68802}
-  m_LocalPosition: {x: -0.56, y: -0.27, z: 1.59}
+  m_LocalPosition: {x: -0.5, y: 0, z: 1.25}
   m_LocalScale: {x: 0.39261425, y: 0.7325743, z: 0.38704088}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4761,7 +4932,7 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 4294967295
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -4770,10 +4941,50 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 2.702275
-  m_Height: 4.8899994
+  m_Radius: 1.15
+  m_Height: 2.56
   m_Direction: 1
-  m_Center: {x: -0.0000039580814, y: 0.000000013185632, z: 0.4288143}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!54 &1546648469
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1546648465}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &1546648470
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1546648465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 409303b04241cd846899f0da2e419316, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  refToNoteBlock: {fileID: 1757408083}
 --- !u!1 &1577126862
 GameObject:
   m_ObjectHideFlags: 0
@@ -4990,6 +5201,8 @@ GameObject:
   - component: {fileID: 1630143344}
   - component: {fileID: 1630143346}
   - component: {fileID: 1630143345}
+  - component: {fileID: 1630143347}
+  - component: {fileID: 1630143348}
   m_Layer: 0
   m_Name: Noteblock Green
   m_TagString: Untagged
@@ -5005,9 +5218,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1630143343}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.863231, y: 0.0030037272, z: -0.040048145, w: 0.5032091}
-  m_LocalPosition: {x: -2.06, y: -16.49, z: 1.56}
-  m_LocalScale: {x: 0.44935238, y: 0.8384413, z: 0.44297358}
+  m_LocalRotation: {x: 0.86323094, y: 0.0030037272, z: -0.040048145, w: 0.5032092}
+  m_LocalPosition: {x: -1.4599998, y: 0, z: 0.51}
+  m_LocalScale: {x: 0.44935238, y: 0.8384413, z: 0.44297394}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1208774785}
@@ -5022,7 +5235,7 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 4294967295
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -5031,10 +5244,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 1.7901231
-  m_Height: 4.89
+  m_Radius: 1.15
+  m_Height: 2.56
   m_Direction: 1
-  m_Center: {x: 0.49272904, y: 3.711078, z: 13.721195}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!212 &1630143346
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -5087,6 +5300,46 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!54 &1630143347
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1630143343}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &1630143348
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1630143343}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 409303b04241cd846899f0da2e419316, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  refToNoteBlock: {fileID: 1208774786}
 --- !u!1 &1630950035
 GameObject:
   m_ObjectHideFlags: 0
@@ -5219,6 +5472,8 @@ GameObject:
   - component: {fileID: 1668922551}
   - component: {fileID: 1668922552}
   - component: {fileID: 1668922553}
+  - component: {fileID: 1668922554}
+  - component: {fileID: 1668922555}
   m_Layer: 0
   m_Name: Noteblock Blue
   m_TagString: Untagged
@@ -5235,7 +5490,7 @@ Transform:
   m_GameObject: {fileID: 1668922550}
   serializedVersion: 2
   m_LocalRotation: {x: 0.72594357, y: -0.0065368805, z: 0.0056724604, w: 0.6876999}
-  m_LocalPosition: {x: 1.73, y: -0.26, z: 1.5}
+  m_LocalPosition: {x: 1.49, y: 0, z: 1.25}
   m_LocalScale: {x: 0.33033794, y: 0.6163737, z: 0.32564864}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5303,7 +5558,7 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 4294967295
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -5312,10 +5567,50 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 2.750225
-  m_Height: 4.890001
+  m_Radius: 1.15
+  m_Height: 2.56
   m_Direction: 1
-  m_Center: {x: -0.000000010808705, y: -0.00000017352245, z: 0.38017514}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!54 &1668922554
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1668922550}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &1668922555
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1668922550}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 409303b04241cd846899f0da2e419316, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  refToNoteBlock: {fileID: 1757408083}
 --- !u!1 &1691553469
 GameObject:
   m_ObjectHideFlags: 0
@@ -5454,6 +5749,7 @@ MonoBehaviour:
   - {fileID: 1546648465}
   - {fileID: 1468845762}
   - {fileID: 1668922550}
+  BlockType: 0
 --- !u!1 &1799697122
 GameObject:
   m_ObjectHideFlags: 0
@@ -6212,6 +6508,8 @@ GameObject:
   - component: {fileID: 2022322347}
   - component: {fileID: 2022322349}
   - component: {fileID: 2022322348}
+  - component: {fileID: 2022322350}
+  - component: {fileID: 2022322351}
   m_Layer: 0
   m_Name: Noteblock Blue
   m_TagString: Untagged
@@ -6228,7 +6526,7 @@ Transform:
   m_GameObject: {fileID: 2022322346}
   serializedVersion: 2
   m_LocalRotation: {x: 0.88539606, y: 0.007034835, z: 0.07782107, w: 0.45822296}
-  m_LocalPosition: {x: 2.514, y: -16.1, z: 1.574}
+  m_LocalPosition: {x: 1.95, y: 0, z: 0.51}
   m_LocalScale: {x: 0.47759098, y: 0.89113134, z: 0.47081134}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6244,7 +6542,7 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 4294967295
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -6253,10 +6551,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 2.750225
-  m_Height: 4.890001
+  m_Radius: 1.15
+  m_Height: 2.56
   m_Direction: 1
-  m_Center: {x: -0.000000010808705, y: -0.00000017352245, z: 0.38017514}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!212 &2022322349
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -6309,6 +6607,46 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!54 &2022322350
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2022322346}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &2022322351
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2022322346}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 409303b04241cd846899f0da2e419316, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  refToNoteBlock: {fileID: 1208774786}
 --- !u!1 &2024514404
 GameObject:
   m_ObjectHideFlags: 0

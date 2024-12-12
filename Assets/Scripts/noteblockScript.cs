@@ -16,6 +16,9 @@ public class NoteBlockScript : MonoBehaviour
     Vector3 originalScaleDPadLeft, originalScaleDPadRight, originalScaleDPadUp, originalScaleDPadDown; // Store original scales
     Tween dpadLeftTween, dpadRightTween, dpadUpTween, dpadDownTween;
 
+    public enum NoteBlockType { GNoteblocks, DNoteblocks }
+    public NoteBlockType BlockType;
+
     void Start()
     {
         // Initializing default colors and original scales for Noteblocks
@@ -31,7 +34,7 @@ public class NoteBlockScript : MonoBehaviour
             originalScaleYellow = RefToNoteblocks[2].transform.localScale;
             originalScaleBlue = RefToNoteblocks[3].transform.localScale;
         }
-        
+
         if (this.gameObject.name == "DNoteblocks")
         {
             defaultDPadLeftColor = RefToNoteblocks[0].GetComponent<SpriteRenderer>().color;
@@ -45,6 +48,10 @@ public class NoteBlockScript : MonoBehaviour
             originalScaleDPadDown = RefToNoteblocks[3].transform.localScale;
         }
     }
+    public void OnChildTriggerEnter(GameObject child, Collider other)
+{
+    Debug.Log($"Child {child.name} picked up trigger with {other.gameObject.name}"); //debugging
+}
 
     void Update()
     {
@@ -60,9 +67,9 @@ public class NoteBlockScript : MonoBehaviour
         // Likewise for DNoteblocks
         if (this.gameObject.name == "DNoteblocks")
         {
-            HandleColorAndAnimation(RefToInputController.DPadLeft > 0, RefToNoteblocks[0], ref dpadLeftTween, new Color(4f / 255f, 170f / 255f, 0f, 1f), defaultDPadLeftColor, originalScaleDPadLeft); 
+            HandleColorAndAnimation(RefToInputController.DPadLeft > 0, RefToNoteblocks[0], ref dpadLeftTween, new Color(4f / 255f, 170f / 255f, 0f, 1f), defaultDPadLeftColor, originalScaleDPadLeft);
             HandleColorAndAnimation(RefToInputController.DPadUp > 0, RefToNoteblocks[1], ref dpadRightTween, new Color(201f / 255f, 20f / 255f, 20f / 255f, 1f), defaultDPadRightColor, originalScaleDPadRight);
-            HandleColorAndAnimation(RefToInputController.DPadDown > 0, RefToNoteblocks[2], ref dpadUpTween, new Color(245f / 255f, 185f / 255f, 13f / 255f, 1f), defaultDPadUpColor, originalScaleDPadUp); 
+            HandleColorAndAnimation(RefToInputController.DPadDown > 0, RefToNoteblocks[2], ref dpadUpTween, new Color(245f / 255f, 185f / 255f, 13f / 255f, 1f), defaultDPadUpColor, originalScaleDPadUp);
             HandleColorAndAnimation(RefToInputController.DPadRight > 0, RefToNoteblocks[3], ref dpadDownTween, new Color(7f / 255f, 101f / 255f, 234f / 255f, 1f), defaultDPadDownColor, originalScaleDPadDown);
         }
     }
@@ -90,4 +97,6 @@ public class NoteBlockScript : MonoBehaviour
                 .Join(noteBlock.transform.DOScale(originalScale, 0.1f));  // Ensure scale is reset smoothly
         }
     }
+
+   
 }

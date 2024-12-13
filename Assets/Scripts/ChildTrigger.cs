@@ -11,4 +11,11 @@ public class ChildTrigger : MonoBehaviour
             refToNoteBlock.OnChildTriggerEnter(gameObject, other);
         }
     }
+       void OnTriggerExit(Collider other)
+    {
+        if (refToNoteBlock != null)
+        {
+            refToNoteBlock.OnChildTriggerExit(gameObject, other);
+        }
+    }
 }

@@ -2911,7 +2911,7 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 1.15
-  m_Height: 2.56
+  m_Height: 3.79
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!212 &915714447
@@ -3169,7 +3169,7 @@ Transform:
   m_GameObject: {fileID: 1027368592}
   serializedVersion: 2
   m_LocalRotation: {x: 0.72567344, y: -0.015119061, z: 0.009706489, w: 0.68780476}
-  m_LocalPosition: {x: -1.51, y: 0, z: 1.25}
+  m_LocalPosition: {x: -1.52, y: 0.01, z: 1.14}
   m_LocalScale: {x: 0.37439075, y: 0.6985713, z: 0.3690761}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4054,7 +4054,7 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 1.15
-  m_Height: 2.56
+  m_Height: 3.79
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!212 &1372634447
@@ -4593,7 +4593,7 @@ Transform:
   m_GameObject: {fileID: 1468845762}
   serializedVersion: 2
   m_LocalRotation: {x: 0.72588146, y: 0.00926886, z: -0.0065277014, w: 0.6877263}
-  m_LocalPosition: {x: 0.53, y: 0, z: 1.25}
+  m_LocalPosition: {x: 0.51999784, y: 0.01, z: 1.14}
   m_LocalScale: {x: 0.38136354, y: 0.7115817, z: 0.37594986}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4864,7 +4864,7 @@ Transform:
   m_GameObject: {fileID: 1546648465}
   serializedVersion: 2
   m_LocalRotation: {x: 0.725598, y: -0.0110117085, z: 0.0038538727, w: 0.68802}
-  m_LocalPosition: {x: -0.5, y: 0, z: 1.25}
+  m_LocalPosition: {x: -0.51000214, y: 0.01, z: 1.14}
   m_LocalScale: {x: 0.39261425, y: 0.7325743, z: 0.38704088}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5245,7 +5245,7 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 1.15
-  m_Height: 2.56
+  m_Height: 3.79
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!212 &1630143346
@@ -5490,7 +5490,7 @@ Transform:
   m_GameObject: {fileID: 1668922550}
   serializedVersion: 2
   m_LocalRotation: {x: 0.72594357, y: -0.0065368805, z: 0.0056724604, w: 0.6876999}
-  m_LocalPosition: {x: 1.49, y: 0, z: 1.25}
+  m_LocalPosition: {x: 1.4799979, y: 0.01, z: 1.14}
   m_LocalScale: {x: 0.33033794, y: 0.6163737, z: 0.32564864}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6552,7 +6552,7 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 1.15
-  m_Height: 2.56
+  m_Height: 3.79
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!212 &2022322349

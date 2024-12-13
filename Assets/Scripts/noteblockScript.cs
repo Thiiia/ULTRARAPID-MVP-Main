@@ -10,8 +10,9 @@ public class NoteBlockScript : MonoBehaviour
     public GameObject[] RefToNoteblocks;
     public enum NoteBlockType { GNoteblocks, DNoteblocks }
     public NoteBlockType BlockType;
-    private List<Collider> activeNotes = new List<Collider>(); // Tracks Notes currently in the trigger
-    private HashSet<GameObject> notesInFlight = new HashSet<GameObject>(); // Tracks notes currently flying to Factor UI
+   private List<Transform> activeNotes = new List<Transform>(); // Tracks Notes currently in the trigger
+   private HashSet<Transform> notesInFlight = new HashSet<Transform>();// Tracks notes currently flying to Factor UI
+   private Dictionary<Transform, int> factorTreeMap = new Dictionary<Transform, int>();
 
     Color defaultGreenColor, defaultRedColor, defaultYellowColor, defaultBlueColor;
     Vector3 originalScaleGreen, originalScaleRed, originalScaleYellow, originalScaleBlue; // Store original scales
@@ -28,6 +29,16 @@ public class NoteBlockScript : MonoBehaviour
 
     void Start()
     {
+        //Cacheing or caching, idk factor tree UI 
+        foreach (var element in factorTreeElements)
+    {
+        TextMeshProUGUI textComponent = element.GetComponent<TextMeshProUGUI>();
+        if (textComponent != null && int.TryParse(textComponent.text, out int factorValue))
+        {
+            factorTreeMap[element] = factorValue;
+        }
+    }
+
         // Initializing default colors and original scales for Noteblocks
         if (this.gameObject.name == "GNoteblocks")
         {
@@ -56,37 +67,38 @@ public class NoteBlockScript : MonoBehaviour
         }
     }
 
-    public void OnChildTriggerEnter(GameObject child, Collider other)
+   public void OnChildTriggerEnter(GameObject child, Collider other)
+{
+    if (other.CompareTag("Note"))
     {
-        if (other.CompareTag("Note"))
+        // Add Note to activeNotes list if not already present
+        Transform noteTransform = other.transform;
+        if (!activeNotes.Contains(noteTransform))
         {
-            // Add Note to activeNotes list when it enters the trigger
-            if (!activeNotes.Contains(other))
-            {
-                activeNotes.Add(other);
-            }
+            activeNotes.Add(noteTransform);
         }
     }
+}
 
 public void OnChildTriggerExit(GameObject child, Collider other)
 {
     if (other.CompareTag("Note"))
     {
+         Transform noteTransform = other.transform;
         // Skip destroying the note if it's in flight
-        if (notesInFlight.Contains(other.gameObject))
+        if (notesInFlight.Contains(noteTransform))
         {
-            Debug.Log($"{other.gameObject.name} is in flight, skipping destroy.");
+            Debug.Log($"{noteTransform.name} is in flight, skipping destroy.");
             return;
         }
 
-        // Otherwise, clean up and destroy the note
-        activeNotes.Remove(other);
-        DOTween.Kill(other.transform);
-        Destroy(other.gameObject);
-        Debug.Log($"Destroyed {other.gameObject.name} on trigger exit.");
+        // Remove and destroy the note
+        activeNotes.Remove(noteTransform);
+        KillTweens(noteTransform);
+        Destroy(noteTransform.gameObject);
+        Debug.Log($"Destroyed {noteTransform} on trigger exit.");
     }
 }
-
     void Update()
     {
         activeNotes.RemoveAll(note => note == null);
@@ -124,18 +136,17 @@ public void OnChildTriggerExit(GameObject child, Collider other)
         }
     }
     // New function to handle interactions
-    void HandleInteractions(bool isActive, GameObject noteBlock)
+  void HandleInteractions(bool isActive, GameObject noteBlock)
 {
     if (isActive)
     {
         foreach (var note in activeNotes)
         {
-            if (note == null) continue; // Skip null references
+            if (note == null || notesInFlight.Contains(note)) continue; // Skip null or flying notes
 
-            // Ensure the note is interacting with this specific block
-            if (noteBlock.GetComponent<Collider>().bounds.Intersects(note.bounds))
+            if (noteBlock.GetComponent<Collider>().bounds.Intersects(note.GetComponent<Collider>().bounds))
             {
-                InteractWithNoteInTrigger(note);
+                InteractWithNoteInTrigger(note.GetComponent<Collider>());
             }
         }
     }
@@ -154,39 +165,36 @@ public void OnChildTriggerExit(GameObject child, Collider other)
         }
 
         //If Assigned factor matches any number in the factor tree :)
-        for (int i = 0; i < factorTreeElements.Length; i++)
+          foreach (var pair in factorTreeMap)
+    {
+        if (pair.Value == spawner.assignedFactor)
         {
-            TextMeshProUGUI factorText = factorTreeElements[i].GetComponent<TextMeshProUGUI>();
-            if (factorText != null && int.TryParse(factorText.text, out int factorValue) && factorValue == spawner.assignedFactor)
-            {
-                // "fly" 
-                AnimateNumberFlying(note.gameObject, factorTreeElements[i]);
-                // visual feedback
-                AnimateFactorTreeFeedback(factorTreeElements[i]);
-                return; // Stop checking once a match is found
-            }
+            AnimateNumberFlying(note.gameObject, pair.Key); //fly baby fly
+            AnimateFactorTreeFeedback(pair.Key); //some woomf
+            return;
         }
+    }
 
 
         Debug.Log($"No match found for factor {spawner.assignedFactor}");
     }
 void AnimateNumberFlying(GameObject note, Transform targetElement)
-{
+{ 
     Vector3 startPos = note.transform.position;
     Vector3 endPos = targetElement.position;
 
     float duration = 4f; // Adjust duration for animation speed
 
     // Add the note to the in-flight set
-    notesInFlight.Add(note);
+    notesInFlight.Add(note.transform);
 
     // Animate the movement of the note towards the target
     note.transform.DOMove(endPos, duration).SetEase(Ease.InOutQuad)
         .OnComplete(() =>
         {
             // Safely destroy the object after the animation completes
-            notesInFlight.Remove(note); // Remove from in-flight tracking
-            DOTween.Kill(note.transform); // Kill any remaining tweens
+            notesInFlight.Remove(note.transform); // Remove from in-flight tracking
+             KillTweens(note.transform); // Kill any remaining tweens
             Destroy(note); // Destroy the note
         });
 
@@ -194,30 +202,26 @@ void AnimateNumberFlying(GameObject note, Transform targetElement)
     note.transform.DOScale(Vector3.zero, duration).SetEase(Ease.InOutQuad);
 }
 
-    void AnimateFactorTreeFeedback(Transform factorTreeElement)
+  void AnimateFactorTreeFeedback(Transform factorTreeElement)
+{
+    TextMeshProUGUI textComponent = factorTreeElement.GetComponent<TextMeshProUGUI>();
+    if (textComponent != null)
     {
-        TextMeshProUGUI textComponent = factorTreeElement.GetComponent<TextMeshProUGUI>();
-        if (textComponent != null)
-        {
-            // Save original color
-            Color originalColor = textComponent.color;
+        Color originalColor = textComponent.color; // original color
+        DOTween.Kill(textComponent);
+        // sequence to handle color flashing and scaling
+        Sequence feedbackSequence = DOTween.Sequence();
 
-            // Flash the text color
-            textComponent.DOColor(Color.yellow, 0.2f)
-                .OnComplete(() =>
-                {
-                    // Revert back to the original color
-                    textComponent.DOColor(originalColor, 0.2f);
-                });
+        // Flash the text color
+        feedbackSequence.Append(textComponent.DOColor(Color.yellow, 0.2f)) // Highlight
+            .Append(textComponent.DOColor(originalColor, 0.2f))           // Revert to original
+            .SetEase(Ease.Linear);
 
-            //  bounce effect
-            factorTreeElement.DOScale(Vector3.one * 1.2f, 0.2f).SetEase(Ease.OutBack)
-                .OnComplete(() =>
-                {
-                    factorTreeElement.DOScale(Vector3.one, 0.2f).SetEase(Ease.OutBounce);
-                });
-        }
+        //bounce effect
+        feedbackSequence.Join(factorTreeElement.DOScale(Vector3.one * 1.2f, 0.2f).SetEase(Ease.OutBack))
+            .Append(factorTreeElement.DOScale(Vector3.one, 0.2f).SetEase(Ease.OutBounce));
     }
+}
 
 
     // handling color and animation to enhance satisfaction for button presses
@@ -243,4 +247,11 @@ void AnimateNumberFlying(GameObject note, Transform targetElement)
                 .Join(noteBlock.transform.DOScale(originalScale, 0.1f));  // Ensure scale is reset smoothly
         }
     }
+    void KillTweens(Transform target)
+{
+    if (target != null)
+    {
+        DOTween.Kill(target);
+    }
+}
 }

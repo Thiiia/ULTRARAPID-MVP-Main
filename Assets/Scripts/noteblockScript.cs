@@ -10,10 +10,10 @@ public class NoteBlockScript : MonoBehaviour
     public GameObject[] RefToNoteblocks;
     public enum NoteBlockType { GNoteblocks, DNoteblocks }
     public NoteBlockType BlockType;
-   private List<Transform> activeNotes = new List<Transform>(); // Tracks Notes currently in the trigger
-   private HashSet<Transform> notesInFlight = new HashSet<Transform>();// Tracks notes currently flying to Factor UI
-   private Dictionary<Transform, int> factorTreeMap = new Dictionary<Transform, int>();
-   private Dictionary<Transform, int> factorTreeCounts = new Dictionary<Transform, int>();
+    private List<Transform> activeNotes = new List<Transform>(); // Tracks Notes currently in the trigger
+    private HashSet<Transform> notesInFlight = new HashSet<Transform>();// Tracks notes currently flying to Factor UI
+    private Dictionary<Transform, int> factorTreeMap = new Dictionary<Transform, int>();
+    private Dictionary<Transform, int> factorTreeCounts = new Dictionary<Transform, int>();
 
 
     Color defaultGreenColor, defaultRedColor, defaultYellowColor, defaultBlueColor;
@@ -23,7 +23,7 @@ public class NoteBlockScript : MonoBehaviour
     Color defaultDPadLeftColor, defaultDPadRightColor, defaultDPadUpColor, defaultDPadDownColor;
     Vector3 originalScaleDPadLeft, originalScaleDPadRight, originalScaleDPadUp, originalScaleDPadDown; // Store original scales
     Tween dpadLeftTween, dpadRightTween, dpadUpTween, dpadDownTween;
-   
+
 
 
 
@@ -33,13 +33,20 @@ public class NoteBlockScript : MonoBehaviour
     {
         //Cacheing or caching, idk factor tree UI 
         foreach (var element in factorTreeElements)
-    {
-        TextMeshProUGUI textComponent = element.GetComponent<TextMeshProUGUI>();
-        if (textComponent != null && int.TryParse(textComponent.text, out int factorValue))
         {
-            factorTreeMap[element] = factorValue;
+            TextMeshProUGUI textComponent = element.GetComponent<TextMeshProUGUI>();
+            if (textComponent != null && int.TryParse(textComponent.text, out int factorValue))
+            {
+                factorTreeMap[element] = factorValue;
+            }
         }
-    }
+
+        foreach (var element in factorTreeElements)
+        {
+            // Initialize factor counts for each factor tree element
+            factorTreeCounts[element] = 0;
+        }
+
 
         // Initializing default colors and original scales for Noteblocks
         if (this.gameObject.name == "GNoteblocks")
@@ -69,38 +76,38 @@ public class NoteBlockScript : MonoBehaviour
         }
     }
 
-   public void OnChildTriggerEnter(GameObject child, Collider other)
-{
-    if (other.CompareTag("Note"))
+    public void OnChildTriggerEnter(GameObject child, Collider other)
     {
-        // Add Note to activeNotes list if not already present
-        Transform noteTransform = other.transform;
-        if (!activeNotes.Contains(noteTransform))
+        if (other.CompareTag("Note"))
         {
-            activeNotes.Add(noteTransform);
+            // Add Note to activeNotes list if not already present
+            Transform noteTransform = other.transform;
+            if (!activeNotes.Contains(noteTransform))
+            {
+                activeNotes.Add(noteTransform);
+            }
         }
     }
-}
 
-public void OnChildTriggerExit(GameObject child, Collider other)
-{
-    if (other.CompareTag("Note"))
+    public void OnChildTriggerExit(GameObject child, Collider other)
     {
-         Transform noteTransform = other.transform;
-        // Skip destroying the note if it's in flight
-        if (notesInFlight.Contains(noteTransform))
+        if (other.CompareTag("Note"))
         {
-            Debug.Log($"{noteTransform.name} is in flight, skipping destroy.");
-            return;
-        }
+            Transform noteTransform = other.transform;
+            // Skip destroying the note if it's in flight
+            if (notesInFlight.Contains(noteTransform))
+            {
+                Debug.Log($"{noteTransform.name} is in flight, skipping destroy.");
+                return;
+            }
 
-        // Remove and destroy the note
-        activeNotes.Remove(noteTransform);
-        KillTweens(noteTransform);
-        Destroy(noteTransform.gameObject);
-        Debug.Log($"Destroyed {noteTransform} on trigger exit.");
+            // Remove and destroy the note
+            activeNotes.Remove(noteTransform);
+            KillTweens(noteTransform);
+            Destroy(noteTransform.gameObject);
+            Debug.Log($"Destroyed {noteTransform} on trigger exit.");
+        }
     }
-}
     void Update()
     {
         activeNotes.RemoveAll(note => note == null);
@@ -137,93 +144,179 @@ public void OnChildTriggerExit(GameObject child, Collider other)
             HandleInteractions(RefToInputController.DPadRight > 0, RefToNoteblocks[3]);
         }
     }
-    // New function to handle interactions
-  void HandleInteractions(bool isActive, GameObject noteBlock)
-{
-    if (isActive)
+    //  handle interactions
+    void HandleInteractions(bool isActive, GameObject noteBlock)
     {
-        foreach (var note in activeNotes)
+        if (isActive)
         {
-            if (note == null || notesInFlight.Contains(note)) continue; // Skip null or flying notes
-
-            if (noteBlock.GetComponent<Collider>().bounds.Intersects(note.GetComponent<Collider>().bounds))
+            foreach (var note in activeNotes)
             {
-                InteractWithNoteInTrigger(note.GetComponent<Collider>());
+                if (note == null || notesInFlight.Contains(note)) continue; // Skip null or flying notes
+
+                if (noteBlock.GetComponent<Collider>().bounds.Intersects(note.GetComponent<Collider>().bounds))
+                {
+                    InteractWithNoteInTrigger(note.GetComponent<Collider>());
+                }
             }
         }
     }
-}
 
     // Define interactions with Notes currently inside the trigger
-    void InteractWithNoteInTrigger(Collider note)
+   void InteractWithNoteInTrigger(Collider note)
+{
+    // Null check for note spawner
+    NoteFactorSpawner spawner = note.GetComponent<NoteFactorSpawner>();
+    if (spawner == null)
     {
+        Debug.LogWarning("Note does not have a NoteFactorSpawner component!");
+        return;
+    }
 
-        // Null check for note spawner
-        NoteFactorSpawner spawner = note.GetComponent<NoteFactorSpawner>();
-        if (spawner == null)
-        {
-            Debug.LogWarning("Note does not have a NoteFactorSpawner component!");
-            return;
-        }
+    // Determine the Noteblock name dynamically by resolving its parent
+    // Assuming notes are children of Noteblocks, get the parent Noteblock
+    Transform triggeringNoteblock = note.transform.parent; 
+    string noteBlockName = triggeringNoteblock?.name; // Get the name of the triggering Noteblock
 
-        //If Assigned factor matches any number in the factor tree :)
-          foreach (var pair in factorTreeMap)
+    // Ensure the Noteblock name is valid
+    if (string.IsNullOrEmpty(noteBlockName))
     {
-        if (pair.Value == spawner.assignedFactor)
+        Debug.LogWarning("Could not determine Noteblock name!");
+        return;
+    }
+
+    Debug.Log($"Resolved Noteblock Name: {noteBlockName}");
+
+    // If Assigned factor matches any number in the factor tree :)
+    foreach (var pair in factorTreeMap)
+    {
+        if (pair.Value == spawner.assignedFactor) // Check for a match with the assigned factor
         {
-            AnimateNumberFlying(note.gameObject, pair.Key); //fly baby fly
-            AnimateFactorTreeFeedback(pair.Key); //some woomf
-            return;
+            AnimateNumberFlying(note.gameObject, pair.Key); // Fly baby fly
+            AnimateFactorTreeFeedback(pair.Key, noteBlockName); // Some woomf
+
+            // Increment the count for this factor tree element
+            if (factorTreeCounts.ContainsKey(pair.Key))
+            {
+                factorTreeCounts[pair.Key]++;
+            }
+            else
+            {
+                factorTreeCounts[pair.Key] = 1;
+            }
+
+            Debug.Log($"FactorTree Count for {pair.Key.name}: {factorTreeCounts[pair.Key]}");
+
+            // Check if this factor tree element is now full *NOT WORKING
+            if (factorTreeCounts[pair.Key] >= 3)
+            {
+                // GLOW BABY GLOW - get color of the triggering Noteblock
+                Color noteBlockColor = GetNoteBlockColorByNoteblockName(noteBlockName);
+                TriggerGlowEffect(pair.Key, noteBlockColor);
+            }
+
+            return; // Stop checking once a match is found
         }
     }
 
-
-        Debug.Log($"No match found for factor {spawner.assignedFactor}");
-    }
-void AnimateNumberFlying(GameObject note, Transform targetElement)
-{ 
-    Vector3 startPos = note.transform.position;
-    Vector3 endPos = targetElement.position;
-
-    float duration = 4f; // Adjust duration for animation speed
-
-    // Add the note to the in-flight set
-    notesInFlight.Add(note.transform);
-
-    // Animate the movement of the note towards the target
-    note.transform.DOMove(endPos, duration).SetEase(Ease.InOutQuad)
-        .OnComplete(() =>
-        {
-            // Safely destroy the object after the animation completes
-            notesInFlight.Remove(note.transform); // Remove from in-flight tracking
-             KillTweens(note.transform); // Kill any remaining tweens
-            Destroy(note); // Destroy the note
-        });
-
-    // scale down the note as it flies
-    note.transform.DOScale(Vector3.zero, duration).SetEase(Ease.InOutQuad);
+    Debug.Log($"No match found for factor {spawner.assignedFactor}");
 }
 
-  void AnimateFactorTreeFeedback(Transform factorTreeElement)
+    void AnimateNumberFlying(GameObject note, Transform targetElement)
+    {
+        Vector3 startPos = note.transform.position;
+        Vector3 endPos = targetElement.position;
+
+        float duration = 4f; // Adjust duration for animation speed
+
+        // Add the note to the in-flight set
+        notesInFlight.Add(note.transform);
+
+        // Animate the movement of the note towards the target
+        note.transform.DOMove(endPos, duration).SetEase(Ease.InOutQuad)
+            .OnComplete(() =>
+            {
+                // Safely destroy the object after the animation completes
+                notesInFlight.Remove(note.transform); // Remove from in-flight tracking
+                KillTweens(note.transform); // Kill any remaining tweens
+                Destroy(note); // Destroy the note
+            });
+
+        // scale down the note as it flies
+        note.transform.DOScale(Vector3.zero, duration).SetEase(Ease.InOutQuad);
+    }
+
+// Animates temporary feedback for the factor tree element, such as flashing and bouncing
+void AnimateFactorTreeFeedback(Transform factorTreeElement, string noteBlockName)
 {
     TextMeshProUGUI textComponent = factorTreeElement.GetComponent<TextMeshProUGUI>();
     if (textComponent != null)
     {
-        Color originalColor = textComponent.color; // original color
-        DOTween.Kill(textComponent);
-        // sequence to handle color flashing and scaling
+        Color originalColor = textComponent.color; // Save original color
+        DOTween.Kill(textComponent); // Ensure no overlapping animations
+
+        // Sequence to handle color flashing and scaling
         Sequence feedbackSequence = DOTween.Sequence();
 
-        // Flash the text color
+        // Flash the text color temporarily
         feedbackSequence.Append(textComponent.DOColor(Color.yellow, 0.2f)) // Highlight
             .Append(textComponent.DOColor(originalColor, 0.2f))           // Revert to original
             .SetEase(Ease.Linear);
 
-        //bounce effect
+        // Bounce effect to visually emphasize the interaction
         feedbackSequence.Join(factorTreeElement.DOScale(Vector3.one * 1.2f, 0.2f).SetEase(Ease.OutBack))
             .Append(factorTreeElement.DOScale(Vector3.one, 0.2f).SetEase(Ease.OutBounce));
+
+        // Avoid persistent color changes here; let TriggerGlowEffect handle it when full
     }
 }
+
+
+
+  // Triggers the glow effect for the factor tree element when full
+void TriggerGlowEffect(Transform factorTreeElement, Color glowColor)
+{
+    TextMeshProUGUI textComponent = factorTreeElement.GetComponent<TextMeshProUGUI>();
+    if (textComponent != null)
+    {
+        // Save the original color for potential reset (if needed elsewhere)
+        Color originalColor = textComponent.color;
+
+        // Glow effect
+        textComponent.DOColor(glowColor, 0.5f).SetLoops(6, LoopType.Yoyo)
+            .OnComplete(() =>
+            {
+                // Ensure the final color is the Noteblock color
+                textComponent.color = glowColor; // Keep the Noteblock color after glow ends
+            });
+
+        // Optional: Add a scaling effect to emphasize the glow
+        factorTreeElement.DOScale(Vector3.one * 1.5f, 0.5f).SetEase(Ease.OutQuad)
+            .OnComplete(() => factorTreeElement.DOScale(Vector3.one, 0.5f).SetEase(Ease.InQuad));
+    }
+}
+
+  
+// Determine the color of the triggering Noteblock 
+Color GetNoteBlockColorByNoteblockName(string noteBlockName)
+{
+    switch (noteBlockName)
+    {
+        case "Noteblock Green":
+            return new Color(0.016f, 0.667f, 0.0f, 1f); // Green
+        case "Noteblock Red":
+            return new Color(0.788f, 0.078f, 0.078f, 1f); // Red
+        case "Noteblock Yellow":
+            return new Color(0.961f, 0.725f, 0.051f, 1f); // Yellow
+        case "Noteblock Blue":
+            return new Color(0.027f, 0.396f, 0.918f, 1f); // Blue
+        default:
+            return Color.white; // Default fallback color
+    }
+}
+
+
+
+
 
 
     // handling color and animation to enhance satisfaction for button presses
@@ -249,11 +342,11 @@ void AnimateNumberFlying(GameObject note, Transform targetElement)
                 .Join(noteBlock.transform.DOScale(originalScale, 0.1f));  // Ensure scale is reset smoothly
         }
     }
-    void KillTweens(Transform target)
+   void KillTweens(Transform target)
 {
     if (target != null)
     {
-        DOTween.Kill(target);
+        DOTween.Kill(target, true); // Kill only tweens associated with this Transform
     }
 }
 }

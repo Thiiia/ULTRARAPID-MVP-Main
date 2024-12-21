@@ -13,6 +13,8 @@ public class NoteBlockScript : MonoBehaviour
    private List<Transform> activeNotes = new List<Transform>(); // Tracks Notes currently in the trigger
    private HashSet<Transform> notesInFlight = new HashSet<Transform>();// Tracks notes currently flying to Factor UI
    private Dictionary<Transform, int> factorTreeMap = new Dictionary<Transform, int>();
+   private Dictionary<Transform, int> factorTreeCounts = new Dictionary<Transform, int>();
+
 
     Color defaultGreenColor, defaultRedColor, defaultYellowColor, defaultBlueColor;
     Vector3 originalScaleGreen, originalScaleRed, originalScaleYellow, originalScaleBlue; // Store original scales

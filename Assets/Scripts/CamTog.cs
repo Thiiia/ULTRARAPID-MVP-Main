@@ -14,7 +14,7 @@ public class CamTog : MonoBehaviour
     float drumsCameraWidth = 0.5f; 
     private Vector3 originalButtonPosition; // To store the button's original position
     private Vector3 originalButtonScale; // To store the button's original scale
-    private Vector3 toggledButtonPosition = new Vector3(-3f, -585f, 0f); // Target position for split-screen(button)
+    public Vector3 toggledButtonPosition = new Vector3(-3f, -585f, 0f); // Target position for split-screen(button)
     private Vector3 toggledButtonScale = new Vector3(0.5f, 0.5f, 0.5f); // Target scale for split-screen(button)
 
     void Start()

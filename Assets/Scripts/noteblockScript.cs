@@ -24,7 +24,10 @@ public class NoteBlockScript : MonoBehaviour
     Vector3 originalScaleDPadLeft, originalScaleDPadRight, originalScaleDPadUp, originalScaleDPadDown; // Store original scales
     Tween dpadLeftTween, dpadRightTween, dpadUpTween, dpadDownTween;
 
-
+    [Header("Timing Thresholds")]
+    public float missThreshold = 0.5f;    // Time deviation for a miss
+    public float goodThreshold = 0.2f;   // Time deviation for a good hit
+    public float perfectThreshold = 0.1f; // Time deviation for a perfect hit
 
 
     public Transform[] factorTreeElements;
@@ -115,32 +118,32 @@ public class NoteBlockScript : MonoBehaviour
         if (this.gameObject.name == "GNoteblocks")
         {
             // Handle interactions and animations based on input
-            HandleColorAndAnimation(RefToInputController.green, RefToNoteblocks[0], ref greenTween, new Color(4f / 255f, 170f / 255f, 0f, 1f), defaultGreenColor, originalScaleGreen);
+            HandleColourAndAnimation(RefToInputController.green, RefToNoteblocks[0], ref greenTween, new Color(4f / 255f, 170f / 255f, 0f, 1f), defaultGreenColor, originalScaleGreen);
             HandleInteractions(RefToInputController.green, RefToNoteblocks[0]);
 
-            HandleColorAndAnimation(RefToInputController.red, RefToNoteblocks[1], ref redTween, new Color(201f / 255f, 20f / 255f, 20f / 255f, 1f), defaultRedColor, originalScaleRed);
+            HandleColourAndAnimation(RefToInputController.red, RefToNoteblocks[1], ref redTween, new Color(201f / 255f, 20f / 255f, 20f / 255f, 1f), defaultRedColor, originalScaleRed);
             HandleInteractions(RefToInputController.red, RefToNoteblocks[1]);
 
-            HandleColorAndAnimation(RefToInputController.yellow, RefToNoteblocks[2], ref yellowTween, new Color(245f / 255f, 185f / 255f, 13f / 255f, 1f), defaultYellowColor, originalScaleYellow);
+            HandleColourAndAnimation(RefToInputController.yellow, RefToNoteblocks[2], ref yellowTween, new Color(245f / 255f, 185f / 255f, 13f / 255f, 1f), defaultYellowColor, originalScaleYellow);
             HandleInteractions(RefToInputController.yellow, RefToNoteblocks[2]);
 
-            HandleColorAndAnimation(RefToInputController.blue, RefToNoteblocks[3], ref blueTween, new Color(7f / 255f, 101f / 255f, 234f / 255f, 1f), defaultBlueColor, originalScaleBlue);
+            HandleColourAndAnimation(RefToInputController.blue, RefToNoteblocks[3], ref blueTween, new Color(7f / 255f, 101f / 255f, 234f / 255f, 1f), defaultBlueColor, originalScaleBlue);
             HandleInteractions(RefToInputController.blue, RefToNoteblocks[3]);
         }
 
         // Likewise for DNoteblocks
         if (this.gameObject.name == "DNoteblocks")
         {
-            HandleColorAndAnimation(RefToInputController.DPadLeft > 0, RefToNoteblocks[0], ref dpadLeftTween, new Color(4f / 255f, 170f / 255f, 0f, 1f), defaultDPadLeftColor, originalScaleDPadLeft);
+            HandleColourAndAnimation(RefToInputController.DPadLeft > 0, RefToNoteblocks[0], ref dpadLeftTween, new Color(4f / 255f, 170f / 255f, 0f, 1f), defaultDPadLeftColor, originalScaleDPadLeft);
             HandleInteractions(RefToInputController.DPadLeft > 0, RefToNoteblocks[0]);
 
-            HandleColorAndAnimation(RefToInputController.DPadUp > 0, RefToNoteblocks[1], ref dpadRightTween, new Color(201f / 255f, 20f / 255f, 20f / 255f, 1f), defaultDPadRightColor, originalScaleDPadRight);
+            HandleColourAndAnimation(RefToInputController.DPadUp > 0, RefToNoteblocks[1], ref dpadRightTween, new Color(201f / 255f, 20f / 255f, 20f / 255f, 1f), defaultDPadRightColor, originalScaleDPadRight);
             HandleInteractions(RefToInputController.DPadUp > 0, RefToNoteblocks[1]);
 
-            HandleColorAndAnimation(RefToInputController.DPadDown > 0, RefToNoteblocks[2], ref dpadUpTween, new Color(245f / 255f, 185f / 255f, 13f / 255f, 1f), defaultDPadUpColor, originalScaleDPadUp);
+            HandleColourAndAnimation(RefToInputController.DPadDown > 0, RefToNoteblocks[2], ref dpadUpTween, new Color(245f / 255f, 185f / 255f, 13f / 255f, 1f), defaultDPadUpColor, originalScaleDPadUp);
             HandleInteractions(RefToInputController.DPadDown > 0, RefToNoteblocks[2]);
 
-            HandleColorAndAnimation(RefToInputController.DPadRight > 0, RefToNoteblocks[3], ref dpadDownTween, new Color(7f / 255f, 101f / 255f, 234f / 255f, 1f), defaultDPadDownColor, originalScaleDPadDown);
+            HandleColourAndAnimation(RefToInputController.DPadRight > 0, RefToNoteblocks[3], ref dpadDownTween, new Color(7f / 255f, 101f / 255f, 234f / 255f, 1f), defaultDPadDownColor, originalScaleDPadDown);
             HandleInteractions(RefToInputController.DPadRight > 0, RefToNoteblocks[3]);
         }
     }
@@ -162,64 +165,64 @@ public class NoteBlockScript : MonoBehaviour
     }
 
     // Define interactions with Notes currently inside the trigger
-   void InteractWithNoteInTrigger(Collider note)
-{
-    // Null check for note spawner
-    NoteFactorSpawner spawner = note.GetComponent<NoteFactorSpawner>();
-    if (spawner == null)
+    void InteractWithNoteInTrigger(Collider note)
     {
-        Debug.LogWarning("Note does not have a NoteFactorSpawner component!");
-        return;
-    }
-
-    // Determine the Noteblock name dynamically by resolving its parent
-    // Assuming notes are children of Noteblocks, get the parent Noteblock
-    Transform triggeringNoteblock = note.transform.parent; 
-    string noteBlockName = triggeringNoteblock?.name; // Get the name of the triggering Noteblock
-
-    // Ensure the Noteblock name is valid
-    if (string.IsNullOrEmpty(noteBlockName))
-    {
-        Debug.LogWarning("Could not determine Noteblock name!");
-        return;
-    }
-
-    Debug.Log($"Resolved Noteblock Name: {noteBlockName}");
-
-    // If Assigned factor matches any number in the factor tree :)
-    foreach (var pair in factorTreeMap)
-    {
-        if (pair.Value == spawner.assignedFactor) // Check for a match with the assigned factor
+        // Null check for note spawner
+        NoteFactorSpawner spawner = note.GetComponent<NoteFactorSpawner>();
+        if (spawner == null)
         {
-            AnimateNumberFlying(note.gameObject, pair.Key); // Fly baby fly
-            AnimateFactorTreeFeedback(pair.Key, noteBlockName); // Some woomf
-
-            // Increment the count for this factor tree element
-            if (factorTreeCounts.ContainsKey(pair.Key))
-            {
-                factorTreeCounts[pair.Key]++;
-            }
-            else
-            {
-                factorTreeCounts[pair.Key] = 1;
-            }
-
-            Debug.Log($"FactorTree Count for {pair.Key.name}: {factorTreeCounts[pair.Key]}");
-
-            // Check if this factor tree element is now full *NOT WORKING
-            if (factorTreeCounts[pair.Key] >= 3)
-            {
-                // GLOW BABY GLOW - get color of the triggering Noteblock
-                Color noteBlockColor = GetNoteBlockColorByNoteblockName(noteBlockName);
-                TriggerGlowEffect(pair.Key, noteBlockColor);
-            }
-
-            return; // Stop checking once a match is found
+            Debug.LogWarning("Note does not have a NoteFactorSpawner component!");
+            return;
         }
-    }
 
-    Debug.Log($"No match found for factor {spawner.assignedFactor}");
-}
+        // Determine the Noteblock name dynamically by resolving its parent
+        // Assuming notes are children of Noteblocks, get the parent Noteblock
+        Transform triggeringNoteblock = note.transform.parent;
+        string noteBlockName = triggeringNoteblock?.name; // Get the name of the triggering Noteblock
+
+        // Ensure the Noteblock name is valid
+        if (string.IsNullOrEmpty(noteBlockName))
+        {
+            Debug.LogWarning("Could not determine Noteblock name!");
+            return;
+        }
+
+        Debug.Log($"Resolved Noteblock Name: {noteBlockName}");
+
+        // If Assigned factor matches any number in the factor tree :)
+        foreach (var pair in factorTreeMap)
+        {
+            if (pair.Value == spawner.assignedFactor) // Check for a match with the assigned factor
+            {
+                AnimateNumberFlying(note.gameObject, pair.Key); // Fly baby fly
+                AnimateFactorTreeFeedback(pair.Key, noteBlockName); // Some woomf
+
+                // Increment the count for this factor tree element
+                if (factorTreeCounts.ContainsKey(pair.Key))
+                {
+                    factorTreeCounts[pair.Key]++;
+                }
+                else
+                {
+                    factorTreeCounts[pair.Key] = 1;
+                }
+
+                Debug.Log($"FactorTree Count for {pair.Key.name}: {factorTreeCounts[pair.Key]}");
+
+                // Check if this factor tree element is now full *NOT WORKING
+                if (factorTreeCounts[pair.Key] >= 3)
+                {
+                    // GLOW BABY GLOW - get colour of the triggering Noteblock
+                    Color noteBlockColor = GetNoteBlockColorByNoteblockName(noteBlockName);
+                    TriggerGlowEffect(pair.Key, noteBlockColor);
+                }
+
+                return; // Stop checking once a match is found
+            }
+        }
+
+        Debug.Log($"No match found for factor {spawner.assignedFactor}");
+    }
 
     void AnimateNumberFlying(GameObject note, Transform targetElement)
     {
@@ -245,108 +248,121 @@ public class NoteBlockScript : MonoBehaviour
         note.transform.DOScale(Vector3.zero, duration).SetEase(Ease.InOutQuad);
     }
 
-// Animates temporary feedback for the factor tree element, such as flashing and bouncing
-void AnimateFactorTreeFeedback(Transform factorTreeElement, string noteBlockName)
-{
-    TextMeshProUGUI textComponent = factorTreeElement.GetComponent<TextMeshProUGUI>();
-    if (textComponent != null)
+    // Animates temporary feedback for the factor tree element, such as flashing and bouncing
+    void AnimateFactorTreeFeedback(Transform factorTreeElement, string noteBlockName)
     {
-        Color originalColor = textComponent.color; // Save original color
-        DOTween.Kill(textComponent); // Ensure no overlapping animations
+        TextMeshProUGUI textComponent = factorTreeElement.GetComponent<TextMeshProUGUI>();
+        if (textComponent != null)
+        {
+            Color originalColor = textComponent.color; // Save original color
+            DOTween.Kill(textComponent); // Ensure no overlapping animations
 
-        // Sequence to handle color flashing and scaling
-        Sequence feedbackSequence = DOTween.Sequence();
+            // Sequence to handle color flashing and scaling
+            Sequence feedbackSequence = DOTween.Sequence();
 
-        // Flash the text color temporarily
-        feedbackSequence.Append(textComponent.DOColor(Color.yellow, 0.2f)) // Highlight
-            .Append(textComponent.DOColor(originalColor, 0.2f))           // Revert to original
-            .SetEase(Ease.Linear);
+            // Flash the text color temporarily
+            feedbackSequence.Append(textComponent.DOColor(Color.yellow, 0.2f)) // Highlight
+                .Append(textComponent.DOColor(originalColor, 0.2f))           // Revert to original
+                .SetEase(Ease.Linear);
 
-        // Bounce effect to visually emphasize the interaction
-        feedbackSequence.Join(factorTreeElement.DOScale(Vector3.one * 1.2f, 0.2f).SetEase(Ease.OutBack))
-            .Append(factorTreeElement.DOScale(Vector3.one, 0.2f).SetEase(Ease.OutBounce));
+            // Bounce effect to visually emphasize the interaction
+            feedbackSequence.Join(factorTreeElement.DOScale(Vector3.one * 1.2f, 0.2f).SetEase(Ease.OutBack))
+                .Append(factorTreeElement.DOScale(Vector3.one, 0.2f).SetEase(Ease.OutBounce));
 
-        // Avoid persistent color changes here; let TriggerGlowEffect handle it when full
+            // Avoid persistent colour changes here; let TriggerGlowEffect handle it when full
+        }
     }
-}
 
 
 
-  // Triggers the glow effect for the factor tree element when full
-void TriggerGlowEffect(Transform factorTreeElement, Color glowColor)
-{
-    TextMeshProUGUI textComponent = factorTreeElement.GetComponent<TextMeshProUGUI>();
-    if (textComponent != null)
+    // Triggers the glow effect for the factor tree element when full
+    void TriggerGlowEffect(Transform factorTreeElement, Color glowColor)
     {
-        // Save the original color for potential reset (if needed elsewhere)
-        Color originalColor = textComponent.color;
+        TextMeshProUGUI textComponent = factorTreeElement.GetComponent<TextMeshProUGUI>();
+        if (textComponent != null)
+        {
+            // Save the original colour for potential reset (if needed elsewhere)
+            Color originalColor = textComponent.color;
 
-        // Glow effect
-        textComponent.DOColor(glowColor, 0.5f).SetLoops(6, LoopType.Yoyo)
-            .OnComplete(() =>
-            {
-                // Ensure the final color is the Noteblock color
-                textComponent.color = glowColor; // Keep the Noteblock color after glow ends
-            });
+            // Glow effect
+            textComponent.DOColor(glowColor, 0.5f).SetLoops(6, LoopType.Yoyo)
+                .OnComplete(() =>
+                {
+                    // Ensure the final colour is the Noteblock colour
+                    textComponent.color = glowColor; // Keep the Noteblock colour after glow ends
+                });
 
-        // Optional: Add a scaling effect to emphasize the glow
-        factorTreeElement.DOScale(Vector3.one * 1.5f, 0.5f).SetEase(Ease.OutQuad)
-            .OnComplete(() => factorTreeElement.DOScale(Vector3.one, 0.5f).SetEase(Ease.InQuad));
+            // Optional: Add a scaling effect to emphasize the glow
+            factorTreeElement.DOScale(Vector3.one * 1.5f, 0.5f).SetEase(Ease.OutQuad)
+                .OnComplete(() => factorTreeElement.DOScale(Vector3.one, 0.5f).SetEase(Ease.InQuad));
+        }
     }
-}
 
-  
-// Determine the color of the triggering Noteblock 
-Color GetNoteBlockColorByNoteblockName(string noteBlockName)
-{
-    switch (noteBlockName)
+
+    // Determine the colour of the triggering Noteblock 
+    Color GetNoteBlockColorByNoteblockName(string noteBlockName)
     {
-        case "Noteblock Green":
-            return new Color(0.016f, 0.667f, 0.0f, 1f); // Green
-        case "Noteblock Red":
-            return new Color(0.788f, 0.078f, 0.078f, 1f); // Red
-        case "Noteblock Yellow":
-            return new Color(0.961f, 0.725f, 0.051f, 1f); // Yellow
-        case "Noteblock Blue":
-            return new Color(0.027f, 0.396f, 0.918f, 1f); // Blue
-        default:
-            return Color.white; // Default fallback color
+        switch (noteBlockName)
+        {
+            case "Noteblock Green":
+                return new Color(0.016f, 0.667f, 0.0f, 1f); // Green
+            case "Noteblock Red":
+                return new Color(0.788f, 0.078f, 0.078f, 1f); // Red
+            case "Noteblock Yellow":
+                return new Color(0.961f, 0.725f, 0.051f, 1f); // Yellow
+            case "Noteblock Blue":
+                return new Color(0.027f, 0.396f, 0.918f, 1f); // Blue
+            default:
+                return Color.white; // Default fallback colour
+        }
     }
-}
 
 
 
 
 
 
-    // handling color and animation to enhance satisfaction for button presses
-    void HandleColorAndAnimation(bool isActive, GameObject noteBlock, ref Tween currentTween, Color targetColor, Color defaultColor, Vector3 originalScale)
+    // handling colour and animation to enhance satisfaction for button presses
+    void HandleColourAndAnimation(bool isActive, GameObject noteBlock, ref Tween currentTween, Color targetColor, Color defaultColor, Vector3 originalScale)
     {
         SpriteRenderer sr = noteBlock.GetComponent<SpriteRenderer>();
+        SpriteRenderer[] childSpriteRenderers = noteBlock.GetComponentsInChildren<SpriteRenderer>(); // Get all child SpriteRenderers
 
-        // If input is active and not already animating to the target color
+        // If input is active and not already animating to the target colour
         if (isActive && sr.color != targetColor)
         {
             currentTween?.Kill(); // Kill any existing tween to avoid stacking
             currentTween = DOTween.Sequence()
                 .Append(noteBlock.transform.DOScale(originalScale * 1.2f, 0.1f).SetEase(Ease.OutBack))  // Scale up with a nice ease-out effect for impact
-                .Join(sr.DOColor(targetColor, 0.2f).SetEase(Ease.Linear))  // Change color to the target color
+                .Join(sr.DOColor(targetColor, 0.2f).SetEase(Ease.Linear))  // Change color to the target colour
                 .Append(noteBlock.transform.DOScale(originalScale, 0.2f).SetEase(Ease.OutBounce));  // Return to original scale with a bounce effect
+
+            // Apply color change to children
+            foreach (var childSr in childSpriteRenderers)
+            {
+                childSr.DOColor(targetColor, 0.2f).SetEase(Ease.Linear);
+            }
         }
-        // If input is inactive and not already animating back to the default color
+        // If input is inactive and not already animating back to the default colour
         else if (!isActive && sr.color != defaultColor)
         {
             currentTween?.Kill(); // Kill any existing tween to avoid stacking
             currentTween = DOTween.Sequence()
-                .Append(sr.DOColor(defaultColor, 0.2f).SetEase(Ease.Linear))  // Return to default color
+                .Append(sr.DOColor(defaultColor, 0.2f).SetEase(Ease.Linear))  // Return to default colour
                 .Join(noteBlock.transform.DOScale(originalScale, 0.1f));  // Ensure scale is reset smoothly
+
+            // Apply colour reset to children
+            foreach (var childSr in childSpriteRenderers)
+            {
+                childSr.DOColor(defaultColor, 0.2f).SetEase(Ease.Linear);
+            }
         }
     }
-   void KillTweens(Transform target)
-{
-    if (target != null)
+    void KillTweens(Transform target)
     {
-        DOTween.Kill(target, true); // Kill only tweens associated with this Transform
+        if (target != null)
+        {
+            DOTween.Kill(target, true); // Kill only tweens associated with this Transform
+        }
     }
-}
 }

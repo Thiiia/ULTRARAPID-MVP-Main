@@ -265,12 +265,13 @@ public class NoteBlockScript : MonoBehaviour
     RectTransform uiNoteRect = uiNote.GetComponent<RectTransform>();
     uiNoteRect.anchoredPosition = uiStartPosition;
 
-    // Optionally copy the number or other details from the world note to the UI note
+    // copy the number from the world note to the UI note
     TextMeshPro worldText = worldNote.GetComponentInChildren<TextMeshPro>();
     TextMeshPro uiText = uiNote.GetComponentInChildren<TextMeshPro>();
     if (worldText != null && uiText != null)
     {
         uiText.text = worldText.text;
+        uiText.transform.SetAsLastSibling();
     }
 
     // Calculate the target position in the Canvas
@@ -282,12 +283,12 @@ public class NoteBlockScript : MonoBehaviour
         out Vector2 uiTargetPosition
     );
 
-    // Invert Y-axis if necessary
+    // Invert Y-axis
     uiStartPosition = new Vector2(uiStartPosition.x, -uiStartPosition.y);
     uiTargetPosition = new Vector2(uiTargetPosition.x, -uiTargetPosition.y);
 
     // Animate the UI note to the target position
-    float animationDuration = 1.5f; // Adjust for speed
+    float animationDuration = 3f; // Adjust for speed
     uiNoteRect.DOAnchorPos(uiTargetPosition, animationDuration).SetEase(Ease.InOutQuad).OnComplete(() =>
     {
         Destroy(uiNote); // Destroy the UI note after it reaches the target

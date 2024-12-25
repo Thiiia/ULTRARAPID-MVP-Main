@@ -11,17 +11,16 @@ public class NoteBlockScript : MonoBehaviour
     public enum NoteBlockType { GNoteblocks, DNoteblocks }
     public NoteBlockType BlockType;
     private List<Transform> activeNotes = new List<Transform>(); // Tracks Notes currently in the trigger
-    private HashSet<Transform> notesInFlight = new HashSet<Transform>();// Tracks notes currently flying to Factor UI
+    private HashSet<Transform> notesInFlight = new HashSet<Transform>(); // Tracks notes currently flying to Factor UI
     private Dictionary<Transform, int> factorTreeMap = new Dictionary<Transform, int>();
     private Dictionary<Transform, int> factorTreeCounts = new Dictionary<Transform, int>();
 
-
     Color defaultGreenColor, defaultRedColor, defaultYellowColor, defaultBlueColor;
-    Vector3 originalScaleGreen, originalScaleRed, originalScaleYellow, originalScaleBlue; // Store original scales
+    Vector3 originalScaleGreen, originalScaleRed, originalScaleYellow, originalScaleBlue;
     Tween greenTween, redTween, yellowTween, blueTween;
 
     Color defaultDPadLeftColor, defaultDPadRightColor, defaultDPadUpColor, defaultDPadDownColor;
-    Vector3 originalScaleDPadLeft, originalScaleDPadRight, originalScaleDPadUp, originalScaleDPadDown; // Store original scales
+    Vector3 originalScaleDPadLeft, originalScaleDPadRight, originalScaleDPadUp, originalScaleDPadDown;
     Tween dpadLeftTween, dpadRightTween, dpadUpTween, dpadDownTween;
 
     [Header("Timing Thresholds")]
@@ -29,12 +28,15 @@ public class NoteBlockScript : MonoBehaviour
     public float goodThreshold = 0.2f;   // Time deviation for a good hit
     public float perfectThreshold = 0.1f; // Time deviation for a perfect hit
 
+    [Header("Feedback UI and Effects")]
+    public TextMeshProUGUI feedbackTextUI;
+    public GameObject perfectFeedbackPrefab;
 
     public Transform[] factorTreeElements;
 
     void Start()
     {
-        //Cacheing or caching, idk factor tree UI 
+        // Caching factor tree UI elements
         foreach (var element in factorTreeElements)
         {
             TextMeshProUGUI textComponent = element.GetComponent<TextMeshProUGUI>();
@@ -46,12 +48,11 @@ public class NoteBlockScript : MonoBehaviour
 
         foreach (var element in factorTreeElements)
         {
-            // Initialize factor counts for each factor tree element
-            factorTreeCounts[element] = 0;
+            // Initialise factor counts for each factor tree element
+            factorTreeCounts[element] = 0; // Everyone starts at 0, no freebies here
         }
 
-
-        // Initializing default colors and original scales for Noteblocks
+        // Initialising default colours and scales for Noteblocks
         if (this.gameObject.name == "GNoteblocks")
         {
             defaultGreenColor = RefToNoteblocks[0].GetComponent<SpriteRenderer>().color;
@@ -111,10 +112,12 @@ public class NoteBlockScript : MonoBehaviour
             Debug.Log($"Destroyed {noteTransform} on trigger exit.");
         }
     }
+
     void Update()
     {
         activeNotes.RemoveAll(note => note == null);
-        // if this is the GNoteblocks gameobject, run thine code my good sir
+
+        // If this is the GNoteblocks GameObject, run thine code my good sir
         if (this.gameObject.name == "GNoteblocks")
         {
             // Handle interactions and animations based on input
@@ -147,18 +150,42 @@ public class NoteBlockScript : MonoBehaviour
             HandleInteractions(RefToInputController.DPadRight > 0, RefToNoteblocks[3]);
         }
     }
-    //  handle interactions
+
+
+    // Handle interactions
     void HandleInteractions(bool isActive, GameObject noteBlock)
     {
         if (isActive)
         {
             foreach (var note in activeNotes)
             {
-                if (note == null || notesInFlight.Contains(note)) continue; // Skip null or flying notes
+                if (note == null || notesInFlight.Contains(note)) continue;
 
                 if (noteBlock.GetComponent<Collider>().bounds.Intersects(note.GetComponent<Collider>().bounds))
                 {
-                    InteractWithNoteInTrigger(note.GetComponent<Collider>());
+                    NoteFactorSpawner spawner = note.GetComponent<NoteFactorSpawner>();
+                    if (spawner != null)
+                    {
+                        float timingDifference = Mathf.Abs(spawner.GetTimingDifference());
+
+                        // Timing feedback
+                        if (timingDifference <= perfectThreshold)
+                        {
+                            DisplayFeedback("Perfect");
+                            Instantiate(perfectFeedbackPrefab, note.transform.position, Quaternion.identity);
+                        }
+                        else if (timingDifference <= goodThreshold)
+                        {
+                            DisplayFeedback("Good");
+                        }
+                        else if (timingDifference > missThreshold)
+                        {
+                            DisplayFeedback("Miss");
+                        }
+
+                        // Call factor logic
+                        InteractWithNoteInTrigger(note.GetComponent<Collider>());
+                    }
                 }
             }
         }
@@ -175,189 +202,83 @@ public class NoteBlockScript : MonoBehaviour
             return;
         }
 
-        // Determine the Noteblock name dynamically by resolving its parent
-        // Assuming notes are children of Noteblocks, get the parent Noteblock
-        Transform triggeringNoteblock = note.transform.parent;
-        string noteBlockName = triggeringNoteblock?.name; // Get the name of the triggering Noteblock
-
-        // Ensure the Noteblock name is valid
-        if (string.IsNullOrEmpty(noteBlockName))
-        {
-            Debug.LogWarning("Could not determine Noteblock name!");
-            return;
-        }
-
-        Debug.Log($"Resolved Noteblock Name: {noteBlockName}");
-
-        // If Assigned factor matches any number in the factor tree :)
         foreach (var pair in factorTreeMap)
         {
             if (pair.Value == spawner.assignedFactor) // Check for a match with the assigned factor
             {
-                AnimateNumberFlying(note.gameObject, pair.Key); // Fly baby fly
-                AnimateFactorTreeFeedback(pair.Key, noteBlockName); // Some woomf
+                AnimateNumberFlying(note.gameObject, pair.Key); // Send the note flying
+                factorTreeCounts[pair.Key]++;
 
-                // Increment the count for this factor tree element
-                if (factorTreeCounts.ContainsKey(pair.Key))
+                // Feedback for full factor tree element
+                if (factorTreeCounts[pair.Key] >= 10)
                 {
-                    factorTreeCounts[pair.Key]++;
-                }
-                else
-                {
-                    factorTreeCounts[pair.Key] = 1;
-                }
-
-                Debug.Log($"FactorTree Count for {pair.Key.name}: {factorTreeCounts[pair.Key]}");
-
-                // Check if this factor tree element is now full *NOT WORKING
-                if (factorTreeCounts[pair.Key] >= 3)
-                {
-                    // GLOW BABY GLOW - get colour of the triggering Noteblock
-                    Color noteBlockColor = GetNoteBlockColorByNoteblockName(noteBlockName);
-                    TriggerGlowEffect(pair.Key, noteBlockColor);
+                    DisplayFeedback($"Factor {pair.Key.name} Full!");
+                    Debug.Log($"Factor tree element {pair.Key.name} is full!");
                 }
 
                 return; // Stop checking once a match is found
             }
         }
 
+        // No match feedback
         Debug.Log($"No match found for factor {spawner.assignedFactor}");
     }
 
+
     void AnimateNumberFlying(GameObject note, Transform targetElement)
     {
-        Vector3 startPos = note.transform.position;
-        Vector3 endPos = targetElement.position;
-
-        float duration = 4f; // Adjust duration for animation speed
-
-        // Add the note to the in-flight set
         notesInFlight.Add(note.transform);
 
-        // Animate the movement of the note towards the target
-        note.transform.DOMove(endPos, duration).SetEase(Ease.InOutQuad)
-            .OnComplete(() =>
-            {
-                // Safely destroy the object after the animation completes
-                notesInFlight.Remove(note.transform); // Remove from in-flight tracking
-                KillTweens(note.transform); // Kill any remaining tweens
-                Destroy(note); // Destroy the note
-            });
-
-        // scale down the note as it flies
-        note.transform.DOScale(Vector3.zero, duration).SetEase(Ease.InOutQuad);
-    }
-
-    // Animates temporary feedback for the factor tree element, such as flashing and bouncing
-    void AnimateFactorTreeFeedback(Transform factorTreeElement, string noteBlockName)
-    {
-        TextMeshProUGUI textComponent = factorTreeElement.GetComponent<TextMeshProUGUI>();
-        if (textComponent != null)
+        note.transform.DOMove(targetElement.position, 3f).SetEase(Ease.InOutQuad).OnComplete(() =>
         {
-            Color originalColor = textComponent.color; // Save original color
-            DOTween.Kill(textComponent); // Ensure no overlapping animations
-
-            // Sequence to handle color flashing and scaling
-            Sequence feedbackSequence = DOTween.Sequence();
-
-            // Flash the text color temporarily
-            feedbackSequence.Append(textComponent.DOColor(Color.yellow, 0.2f)) // Highlight
-                .Append(textComponent.DOColor(originalColor, 0.2f))           // Revert to original
-                .SetEase(Ease.Linear);
-
-            // Bounce effect to visually emphasize the interaction
-            feedbackSequence.Join(factorTreeElement.DOScale(Vector3.one * 1.2f, 0.2f).SetEase(Ease.OutBack))
-                .Append(factorTreeElement.DOScale(Vector3.one, 0.2f).SetEase(Ease.OutBounce));
-
-            // Avoid persistent colour changes here; let TriggerGlowEffect handle it when full
-        }
+            notesInFlight.Remove(note.transform);
+            Destroy(note);
+        });
     }
 
-
-
-    // Triggers the glow effect for the factor tree element when full
-    void TriggerGlowEffect(Transform factorTreeElement, Color glowColor)
-    {
-        TextMeshProUGUI textComponent = factorTreeElement.GetComponent<TextMeshProUGUI>();
-        if (textComponent != null)
-        {
-            // Save the original colour for potential reset (if needed elsewhere)
-            Color originalColor = textComponent.color;
-
-            // Glow effect
-            textComponent.DOColor(glowColor, 0.5f).SetLoops(6, LoopType.Yoyo)
-                .OnComplete(() =>
-                {
-                    // Ensure the final colour is the Noteblock colour
-                    textComponent.color = glowColor; // Keep the Noteblock colour after glow ends
-                });
-
-            // Optional: Add a scaling effect to emphasize the glow
-            factorTreeElement.DOScale(Vector3.one * 1.5f, 0.5f).SetEase(Ease.OutQuad)
-                .OnComplete(() => factorTreeElement.DOScale(Vector3.one, 0.5f).SetEase(Ease.InQuad));
-        }
-    }
-
-
-    // Determine the colour of the triggering Noteblock 
-    Color GetNoteBlockColorByNoteblockName(string noteBlockName)
-    {
-        switch (noteBlockName)
-        {
-            case "Noteblock Green":
-                return new Color(0.016f, 0.667f, 0.0f, 1f); // Green
-            case "Noteblock Red":
-                return new Color(0.788f, 0.078f, 0.078f, 1f); // Red
-            case "Noteblock Yellow":
-                return new Color(0.961f, 0.725f, 0.051f, 1f); // Yellow
-            case "Noteblock Blue":
-                return new Color(0.027f, 0.396f, 0.918f, 1f); // Blue
-            default:
-                return Color.white; // Default fallback colour
-        }
-    }
-
-
-
-
-
-
-    // handling colour and animation to enhance satisfaction for button presses
+    // Handles the visual effects and scaling for button presses
     void HandleColourAndAnimation(bool isActive, GameObject noteBlock, ref Tween currentTween, Color targetColor, Color defaultColor, Vector3 originalScale)
     {
         SpriteRenderer sr = noteBlock.GetComponent<SpriteRenderer>();
-        SpriteRenderer[] childSpriteRenderers = noteBlock.GetComponentsInChildren<SpriteRenderer>(); // Get all child SpriteRenderers
+        SpriteRenderer[] childSpriteRenderers = noteBlock.GetComponentsInChildren<SpriteRenderer>();
 
-        // If input is active and not already animating to the target colour
         if (isActive && sr.color != targetColor)
         {
-            currentTween?.Kill(); // Kill any existing tween to avoid stacking
+            currentTween?.Kill();
             currentTween = DOTween.Sequence()
-                .Append(noteBlock.transform.DOScale(originalScale * 1.2f, 0.1f).SetEase(Ease.OutBack))  // Scale up with a nice ease-out effect for impact
-                .Join(sr.DOColor(targetColor, 0.2f).SetEase(Ease.Linear))  // Change color to the target colour
-                .Append(noteBlock.transform.DOScale(originalScale, 0.2f).SetEase(Ease.OutBounce));  // Return to original scale with a bounce effect
+                .Append(noteBlock.transform.DOScale(originalScale * 1.2f, 0.1f).SetEase(Ease.OutBack))
+                .Join(sr.DOColor(targetColor, 0.2f).SetEase(Ease.Linear))
+                .Append(noteBlock.transform.DOScale(originalScale, 0.2f).SetEase(Ease.OutBounce));
 
-            // Apply color change to children
             foreach (var childSr in childSpriteRenderers)
             {
                 childSr.DOColor(targetColor, 0.2f).SetEase(Ease.Linear);
             }
         }
-        // If input is inactive and not already animating back to the default colour
         else if (!isActive && sr.color != defaultColor)
         {
-            currentTween?.Kill(); // Kill any existing tween to avoid stacking
+            currentTween?.Kill();
             currentTween = DOTween.Sequence()
-                .Append(sr.DOColor(defaultColor, 0.2f).SetEase(Ease.Linear))  // Return to default colour
-                .Join(noteBlock.transform.DOScale(originalScale, 0.1f));  // Ensure scale is reset smoothly
+                .Append(sr.DOColor(defaultColor, 0.2f).SetEase(Ease.Linear))
+                .Join(noteBlock.transform.DOScale(originalScale, 0.1f));
 
-            // Apply colour reset to children
             foreach (var childSr in childSpriteRenderers)
             {
                 childSr.DOColor(defaultColor, 0.2f).SetEase(Ease.Linear);
             }
         }
     }
+    void DisplayFeedback(string feedbackText)
+    {
+        if (feedbackTextUI != null)
+        {
+            feedbackTextUI.text = feedbackText; // Set the feedback text
+            feedbackTextUI.DOFade(1f, 0.2f) // Fade in
+                .OnComplete(() => feedbackTextUI.DOFade(0f, 0.5f)); // Fade out
+        }
+    }
+
+
     void KillTweens(Transform target)
     {
         if (target != null)

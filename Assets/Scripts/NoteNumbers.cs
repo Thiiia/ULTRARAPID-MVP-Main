@@ -1,25 +1,29 @@
 using System.Collections.Generic;
-using TMPro; // Import the TextMeshPro namespace
+using TMPro;
 using UnityEngine;
 
 public class NoteFactorSpawner : MonoBehaviour
 {
     [Header("Number to Generate Factors From")]
-    [Tooltip("Specify the number for which random factors will be generated.")]
     public int specifiedNumber;
 
     [Header("Assigned Factor")]
-    [Tooltip("The randomly assigned factor for this note.")]
     public int assignedFactor;
 
     private List<int> factors = new List<int>();
 
     [Header("TextMeshPro Component")]
-    [Tooltip("The TextMeshPro (3D) component to display the assigned factor.")]
     public TextMeshPro factorText; // Reference to the TextMeshPro (3D) component
+
+    [Header("Timing Settings")]
+    [Tooltip("The expected time for this note to be hit.")]
+    public float expectedHitTime; // The time this note should be hit (e.g., provided by your chart system)
+
+    private float spawnTime; // When the note is spawned
 
     void Start()
     {
+        spawnTime = Time.time; // Record the time the note is spawned
         GenerateFactors(specifiedNumber);
         AssignRandomFactor();
     }
@@ -39,7 +43,7 @@ public class NoteFactorSpawner : MonoBehaviour
         {
             if (number % i == 0)
             {
-                factors.Add(i); // Add the factor to the list
+                factors.Add(i);
             }
         }
     }
@@ -50,8 +54,6 @@ public class NoteFactorSpawner : MonoBehaviour
         if (factors.Count > 0)
         {
             assignedFactor = factors[Random.Range(0, factors.Count)];
-
-            // Display the factor visually
             DisplayFactorOnNote();
         }
         else
@@ -65,11 +67,18 @@ public class NoteFactorSpawner : MonoBehaviour
     {
         if (factorText != null)
         {
-            factorText.text = assignedFactor.ToString(); // Set the text to the assigned factor
+            factorText.text = assignedFactor.ToString();
         }
         else
         {
             Debug.LogError("TextMeshPro (3D) component is not assigned!");
         }
+    }
+
+    // Calculate the timing difference (for timing feedback like Miss, Good, Perfect)
+    public float GetTimingDifference()
+    {
+        float currentTime = Time.time;
+        return currentTime - (spawnTime + expectedHitTime);
     }
 }

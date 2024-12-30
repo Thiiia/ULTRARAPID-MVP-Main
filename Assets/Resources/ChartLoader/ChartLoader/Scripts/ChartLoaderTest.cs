@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using ChartLoader.NET.Framework;
 using ChartLoader.NET.Utils;
-using Sirenix.OdinInspector;  // Import Odin namespace
+using Sirenix.OdinInspector; // Import Odin namespace
 
 public class ChartLoaderTest : MonoBehaviour
 {
@@ -52,7 +52,7 @@ public class ChartLoaderTest : MonoBehaviour
     #region Prefab Settings
     [TabGroup("Prefab Settings")]
     [SerializeField, Tooltip("The note prefabs to be instantiated.")]
-    private Transform[] _solidNotes;  
+    private Transform[] _solidNotes;
     public Transform[] SolidNotes
     {
         get { return _solidNotes; }
@@ -171,8 +171,8 @@ public class ChartLoaderTest : MonoBehaviour
         Transform tmp;
         foreach (SynchTrack synchTrack in synchTracks)
         {
-            //tmp = SpawnPrefab(BpmPrefab, transform, new Vector3(3f, 0, synchTrack.Seconds * Speed));
-           // tmp.GetChild(0).GetComponent<TextMesh>().text = "BPM: " + (synchTrack.BeatsPerMinute / 1000) + " " + synchTrack.Measures + "/" + synchTrack.Measures;
+            // tmp = SpawnPrefab(BpmPrefab, transform, new Vector3(3f, 0, synchTrack.Seconds * Speed));
+            // tmp.GetChild(0).GetComponent<TextMesh>().text = "BPM: " + (synchTrack.BeatsPerMinute / 1000) + " " + synchTrack.Measures + "/" + synchTrack.Measures;
         }
     }
 
@@ -194,12 +194,20 @@ public class ChartLoaderTest : MonoBehaviour
         foreach (Note note in notes)
         {
             z = note.Seconds * Speed;
-            for (int i = 0; i < 4; i++) 
+            for (int i = 0; i < 4; i++)
             {
-                if (note.ButtonIndexes[i])  
+                if (note.ButtonIndexes[i]) // Checks which note button (e.g., green, red, etc.) is active
                 {
-                    noteTmp = SpawnPrefab(SolidNotes[i], transform, new Vector3(i - 1.5f, 0, z)); //kinda the positions of which the notes will be spaced
+                    noteTmp = SpawnPrefab(SolidNotes[i], transform, new Vector3(i - 1.5f, 0, z)); // Position of the notes
                     SetLongNoteScale(noteTmp.GetChild(0), note.DurationSeconds * Speed);
+
+                    // Assign timing data to the NoteFactorSpawner
+                    var spawner = noteTmp.GetComponent<NoteFactorSpawner>();
+                    if (spawner != null)
+                    {
+                        spawner.expectedHitTime = note.Seconds; // Set the expected hit time
+                    }
+
                     if (note.IsHOPO)
                         SetHOPO(noteTmp);
                     else
@@ -219,7 +227,7 @@ public class ChartLoaderTest : MonoBehaviour
     }
 
     private void PlayMusic() => Music.Play();
-    
+
     private Transform SpawnPrefab(Transform prefab, Transform parent, Vector3 position)
     {
         Transform tmp = Instantiate(prefab, parent);

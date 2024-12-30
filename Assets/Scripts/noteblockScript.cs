@@ -24,6 +24,8 @@ public class NoteBlockScript : MonoBehaviour
     Tween dpadLeftTween, dpadRightTween, dpadUpTween, dpadDownTween;
 
     public GameObject UINoteGreenPrefab, UINoteRedPrefab, UINoteYellowPrefab, UINoteBluePrefab;
+    public Camera GMainCamera;
+    public Camera DMainCamera;
 
     [Header("Timing Thresholds")]
     public float missThreshold = 0.5f;    // Time deviation for a miss
@@ -96,20 +98,20 @@ public class NoteBlockScript : MonoBehaviour
     }
 
     public void OnChildTriggerExit(GameObject child, Collider other)
-{
-    if (other.CompareTag("Note"))
     {
-        Transform noteTransform = other.transform;
+        if (other.CompareTag("Note"))
+        {
+            Transform noteTransform = other.transform;
 
-        // Remove the note from the active list
-        activeNotes.Remove(noteTransform);
+            // Remove the note from the active list
+            activeNotes.Remove(noteTransform);
 
-        // Clean up the note
-        KillTweens(noteTransform); // Stop any ongoing animations or tweens
-        Destroy(noteTransform.gameObject); // Destroy the world-space note
-        Debug.Log($"Destroyed {noteTransform.name} on trigger exit.");
+            // Clean up the note
+            KillTweens(noteTransform); // Stop any ongoing animations or tweens
+            Destroy(noteTransform.gameObject); // Destroy the world-space note
+            Debug.Log($"Destroyed {noteTransform.name} on trigger exit.");
+        }
     }
-}
 
 
     void Update()
@@ -152,53 +154,52 @@ public class NoteBlockScript : MonoBehaviour
 
 
     // Handle interactions
-   void HandleInteractions(bool isActive, GameObject noteBlock)
-{
-    if (isActive)
+    void HandleInteractions(bool isActive, GameObject noteBlock)
     {
-        foreach (var note in activeNotes)
+        if (isActive)
         {
-            if (note == null) continue; // Skip null notes
-
-            if (noteBlock.GetComponent<Collider>().bounds.Intersects(note.GetComponent<Collider>().bounds))
+            foreach (var note in activeNotes)
             {
-                NoteFactorSpawner spawner = note.GetComponent<NoteFactorSpawner>();
-                if (spawner != null)
+                if (note == null) continue; // Skip null notes
+
+                if (noteBlock.GetComponent<Collider>().bounds.Intersects(note.GetComponent<Collider>().bounds))
                 {
-                    float timingDifference = Mathf.Abs(spawner.GetTimingDifference());
-
-                    // Timing feedback
-                    if (timingDifference <= perfectThreshold)
+                    NoteFactorSpawner spawner = note.GetComponent<NoteFactorSpawner>();
+                    if (spawner != null)
                     {
-                        DisplayFeedback("Perfect");
-                       // Instantiate(perfectFeedbackPrefab, note.transform.position, Quaternion.identity);
-                    }
-                    else if (timingDifference <= goodThreshold)
-                    {
-                        DisplayFeedback("Good");
-                    }
-                    else if (timingDifference > missThreshold)
-                    {
-                        DisplayFeedback("Miss");
-                    }
+                        float timingDifference = Mathf.Abs(spawner.GetTimingDifference());
 
-                    // Call factor logic
-                    InteractWithNoteInTrigger(note.GetComponent<Collider>());
+                        // Timing feedback
+                        if (timingDifference <= perfectThreshold)
+                        {
+                            DisplayFeedback("Perfect");
+                            // Instantiate(perfectFeedbackPrefab, note.transform.position, Quaternion.identity);
+                        }
+                        else if (timingDifference <= goodThreshold)
+                        {
+                            DisplayFeedback("Good");
+                        }
+                        else if (timingDifference > missThreshold)
+                        {
+                            DisplayFeedback("Miss");
+                        }
 
-                    // Destroy the world-space note since it's transitioning to UI
-                    activeNotes.Remove(note);
-                    Destroy(note.gameObject);
-                    break; // Exit loop since the note was processed
+                        // Call factor logic
+                        InteractWithNoteInTrigger(note.GetComponent<Collider>());
+
+                        // Destroy the world-space note since it's transitioning to UI
+                        activeNotes.Remove(note);
+                        Destroy(note.gameObject);
+                        break; // Exit loop since the note was processed
+                    }
                 }
             }
         }
     }
-}
 
     // Define interactions with Notes currently inside the trigger
     void InteractWithNoteInTrigger(Collider note)
     {
-        // Null check for note spawner
         NoteFactorSpawner spawner = note.GetComponent<NoteFactorSpawner>();
         if (spawner == null)
         {
@@ -208,12 +209,24 @@ public class NoteBlockScript : MonoBehaviour
 
         foreach (var pair in factorTreeMap)
         {
-            if (pair.Value == spawner.assignedFactor) // Check for a match with the assigned factor
+            if (pair.Value == spawner.assignedFactor) // Match with factor tree
             {
-                AnimateNumberFlying(note.gameObject, pair.Key); // Send the note flying
-                factorTreeCounts[pair.Key]++;
+                // Dynamically find the correct camera based on BlockType
+                Camera activeCamera = (BlockType == NoteBlockType.GNoteblocks)
+                    ? GameObject.Find("GMain Camera").GetComponent<Camera>() // For Guitar notes
+                    : GameObject.Find("DMain Camera").GetComponent<Camera>(); // For Drum notes
 
-                // Feedback for full factor tree element
+                if (activeCamera == null)
+                {
+                    Debug.LogError("Could not find the appropriate camera! Ensure GMainCamera and DMainCamera are named correctly.");
+                    return;
+                }
+
+                // Send the note flying with the correct camera
+                AnimateNumberFlying(note.gameObject, pair.Key, activeCamera);
+
+                // Increment factor tree count
+                factorTreeCounts[pair.Key]++;
                 if (factorTreeCounts[pair.Key] >= 10)
                 {
                     DisplayFeedback($"Factor {pair.Key.name} Full!");
@@ -224,17 +237,23 @@ public class NoteBlockScript : MonoBehaviour
             }
         }
 
-        // No match feedback
+        // If no match is found
         Debug.Log($"No match found for factor {spawner.assignedFactor}");
         DisplayFeedback("Wrong Factor");
     }
-
-
- void AnimateNumberFlying(GameObject worldNote, Transform targetElement)
+void AnimateNumberFlying(GameObject worldNote, Transform targetElement, Camera currentCamera)
 {
+    // Reference the parent canvas (must be in Screen Space - Overlay)
     Canvas parentCanvas = feedbackTextUI.GetComponentInParent<Canvas>();
+    if (parentCanvas == null)
+    {
+        Debug.LogError("Parent Canvas not found. Ensure feedbackTextUI is part of a Canvas.");
+        return;
+    }
 
-    // Determine which UI prefab to use based on the note's color
+    RectTransform canvasRect = parentCanvas.GetComponent<RectTransform>();
+
+    // Determine the UI note prefab based on the world note's color
     GameObject uiNotePrefab = null;
     if (worldNote.name.Contains("Green"))
         uiNotePrefab = UINoteGreenPrefab;
@@ -251,50 +270,60 @@ public class NoteBlockScript : MonoBehaviour
         return;
     }
 
-    // Get the starting screen position of the world note
-    Vector3 worldNoteScreenPosition = Camera.main.WorldToScreenPoint(worldNote.transform.position);
+    // Instantiate the UI note in the overlay canvas
+    GameObject uiNote = Instantiate(uiNotePrefab, parentCanvas.transform);
+    RectTransform uiNoteRect = uiNote.GetComponent<RectTransform>();
+
+    // Convert world note position to screen space relative to the current camera
+    Vector3 screenPosition = currentCamera.WorldToScreenPoint(worldNote.transform.position);
+
+    // Ensure the note is visible in front of the camera
+    if (screenPosition.z <= 0)
+    {
+        Debug.LogWarning($"World note {worldNote.name} is out of view or behind the camera.");
+        Destroy(uiNote);
+        return;
+    }
+
+    // Convert screen space to canvas space
     RectTransformUtility.ScreenPointToLocalPointInRectangle(
-        parentCanvas.GetComponent<RectTransform>(),
-        worldNoteScreenPosition,
+        canvasRect,
+        screenPosition,
         parentCanvas.worldCamera,
         out Vector2 uiStartPosition
     );
 
-    // Instantiate the UI note
-    GameObject uiNote = Instantiate(uiNotePrefab, parentCanvas.transform);
-    RectTransform uiNoteRect = uiNote.GetComponent<RectTransform>();
+    // Set the UI note's starting position
     uiNoteRect.anchoredPosition = uiStartPosition;
 
-    // copy the number from the world note to the UI note
+    // Copy the number from the world note to the UI note
     TextMeshPro worldText = worldNote.GetComponentInChildren<TextMeshPro>();
-    TextMeshPro uiText = uiNote.GetComponentInChildren<TextMeshPro>();
+    TextMeshProUGUI uiText = uiNote.GetComponentInChildren<TextMeshProUGUI>();
     if (worldText != null && uiText != null)
     {
         uiText.text = worldText.text;
-        uiText.transform.SetAsLastSibling();
     }
 
-    // Calculate the target position in the Canvas
-    Vector3 targetScreenPosition = Camera.main.WorldToScreenPoint(targetElement.position);
+    // Convert the target element's position to screen space relative to the same camera
+    Vector3 targetScreenPosition = currentCamera.WorldToScreenPoint(targetElement.position);
+
+    // Convert target screen space to canvas space
     RectTransformUtility.ScreenPointToLocalPointInRectangle(
-        parentCanvas.GetComponent<RectTransform>(),
+        canvasRect,
         targetScreenPosition,
         parentCanvas.worldCamera,
         out Vector2 uiTargetPosition
     );
 
-    // Invert Y-axis
-    uiStartPosition = new Vector2(uiStartPosition.x, -uiStartPosition.y);
-    uiTargetPosition = new Vector2(uiTargetPosition.x, -uiTargetPosition.y);
-
     // Animate the UI note to the target position
-    float animationDuration = 3f; // Adjust for speed
+    float animationDuration = 1.5f; // Adjust for speed
     uiNoteRect.DOAnchorPos(uiTargetPosition, animationDuration).SetEase(Ease.InOutQuad).OnComplete(() =>
     {
-        Destroy(uiNote); // Destroy the UI note after it reaches the target
+        // Destroy the UI note after it reaches the target
+        Destroy(uiNote);
+        Debug.Log($"UI note {uiNote.name} successfully reached target: {targetElement.name}");
     });
 }
-
 
 
 

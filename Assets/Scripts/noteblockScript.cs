@@ -37,6 +37,7 @@ public class NoteBlockScript : MonoBehaviour
     public GameObject perfectFeedbackPrefab;
 
     public Transform[] factorTreeElements;
+    public GameObject fullIndicatorPrefab; // When la factor tree is full
 
     void Start()
     {
@@ -227,10 +228,28 @@ public class NoteBlockScript : MonoBehaviour
 
                 // Increment factor tree count
                 factorTreeCounts[pair.Key]++;
-                if (factorTreeCounts[pair.Key] >= 10)
+                if (factorTreeCounts[pair.Key] >= 4)
                 {
-                    DisplayFeedback($"Factor {pair.Key.name} Full!");
-                    Debug.Log($"Factor tree element {pair.Key.name} is full!");
+                    TextMeshProUGUI textComponent = pair.Key.GetComponent<TextMeshProUGUI>();
+                    string factorValueText = textComponent != null ? textComponent.text : "Unknown";
+
+                    DisplayFeedback($"Factor {factorValueText} Full!");
+                    Debug.Log($"Factor tree element {factorValueText} is full!");
+                   
+                    Transform existingIndicator = pair.Key.Find("FullIndicator");
+                    if (existingIndicator == null && fullIndicatorPrefab != null)
+                    {
+                        // Instantiate the full indicator 
+                        GameObject fullIndicator = Instantiate(fullIndicatorPrefab, pair.Key);
+                        fullIndicator.name = "FullIndicator";
+
+                        // Position the image above the factor tree element
+                        RectTransform indicatorRect = fullIndicator.GetComponent<RectTransform>();
+                        if (indicatorRect != null)
+                        {
+                            indicatorRect.anchoredPosition = new Vector2(0, 65); // Y offset
+                        }
+                    }
                 }
 
                 return; // Stop checking once a match is found
@@ -241,89 +260,89 @@ public class NoteBlockScript : MonoBehaviour
         Debug.Log($"No match found for factor {spawner.assignedFactor}");
         DisplayFeedback("Wrong Factor");
     }
-void AnimateNumberFlying(GameObject worldNote, Transform targetElement, Camera currentCamera)
-{
-    // Reference the parent canvas (must be in Screen Space - Overlay)
-    Canvas parentCanvas = feedbackTextUI.GetComponentInParent<Canvas>();
-    if (parentCanvas == null)
+    void AnimateNumberFlying(GameObject worldNote, Transform targetElement, Camera currentCamera)
     {
-        Debug.LogError("Parent Canvas not found. Ensure feedbackTextUI is part of a Canvas.");
-        return;
+        // Reference the parent canvas (must be in Screen Space - Overlay)
+        Canvas parentCanvas = feedbackTextUI.GetComponentInParent<Canvas>();
+        if (parentCanvas == null)
+        {
+            Debug.LogError("Parent Canvas not found. Ensure feedbackTextUI is part of a Canvas.");
+            return;
+        }
+
+        RectTransform canvasRect = parentCanvas.GetComponent<RectTransform>();
+
+        // Determine the UI note prefab based on the world note's color
+        GameObject uiNotePrefab = null;
+        if (worldNote.name.Contains("Green"))
+            uiNotePrefab = UINoteGreenPrefab;
+        else if (worldNote.name.Contains("Red"))
+            uiNotePrefab = UINoteRedPrefab;
+        else if (worldNote.name.Contains("Yellow"))
+            uiNotePrefab = UINoteYellowPrefab;
+        else if (worldNote.name.Contains("Blue"))
+            uiNotePrefab = UINoteBluePrefab;
+
+        if (uiNotePrefab == null)
+        {
+            Debug.LogError($"No matching UI prefab for note: {worldNote.name}");
+            return;
+        }
+
+        // Instantiate the UI note in the overlay canvas
+        GameObject uiNote = Instantiate(uiNotePrefab, parentCanvas.transform);
+        RectTransform uiNoteRect = uiNote.GetComponent<RectTransform>();
+
+        // Convert world note position to screen space relative to the current camera
+        Vector3 screenPosition = currentCamera.WorldToScreenPoint(worldNote.transform.position);
+
+        // Ensure the note is visible in front of the camera
+        if (screenPosition.z <= 0)
+        {
+            Debug.LogWarning($"World note {worldNote.name} is out of view or behind the camera.");
+            Destroy(uiNote);
+            return;
+        }
+
+        // Convert screen space to canvas space
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            canvasRect,
+            screenPosition,
+            parentCanvas.worldCamera,
+            out Vector2 uiStartPosition
+        );
+
+        // Set the UI note's starting position
+        uiNoteRect.anchoredPosition = uiStartPosition;
+
+        // Copy the number from the world note to the UI note
+        TextMeshPro worldText = worldNote.GetComponentInChildren<TextMeshPro>();
+        TextMeshProUGUI uiText = uiNote.GetComponentInChildren<TextMeshProUGUI>();
+        if (worldText != null && uiText != null)
+        {
+            uiText.text = worldText.text;
+        }
+
+        // Convert the target element's position to screen space relative to the same camera
+        Vector3 targetScreenPosition = currentCamera.WorldToScreenPoint(targetElement.position);
+
+        // Convert target screen space to canvas space
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            canvasRect,
+            targetScreenPosition,
+            parentCanvas.worldCamera,
+            out Vector2 uiTargetPosition
+        );
+
+        // Animate the UI note to the target position
+        float animationDuration = 1.5f; // Adjust for speed
+        uiNoteRect.DOAnchorPos(uiTargetPosition, animationDuration).SetEase(Ease.InOutQuad).OnComplete(() =>
+        {
+            // Destroy the UI note after it reaches the target
+            Destroy(uiNote);
+            Debug.Log($"UI note {uiNote.name} successfully reached target: {targetElement.name}");
+        });
     }
-
-    RectTransform canvasRect = parentCanvas.GetComponent<RectTransform>();
-
-    // Determine the UI note prefab based on the world note's color
-    GameObject uiNotePrefab = null;
-    if (worldNote.name.Contains("Green"))
-        uiNotePrefab = UINoteGreenPrefab;
-    else if (worldNote.name.Contains("Red"))
-        uiNotePrefab = UINoteRedPrefab;
-    else if (worldNote.name.Contains("Yellow"))
-        uiNotePrefab = UINoteYellowPrefab;
-    else if (worldNote.name.Contains("Blue"))
-        uiNotePrefab = UINoteBluePrefab;
-
-    if (uiNotePrefab == null)
-    {
-        Debug.LogError($"No matching UI prefab for note: {worldNote.name}");
-        return;
-    }
-
-    // Instantiate the UI note in the overlay canvas
-    GameObject uiNote = Instantiate(uiNotePrefab, parentCanvas.transform);
-    RectTransform uiNoteRect = uiNote.GetComponent<RectTransform>();
-
-    // Convert world note position to screen space relative to the current camera
-    Vector3 screenPosition = currentCamera.WorldToScreenPoint(worldNote.transform.position);
-
-    // Ensure the note is visible in front of the camera
-    if (screenPosition.z <= 0)
-    {
-        Debug.LogWarning($"World note {worldNote.name} is out of view or behind the camera.");
-        Destroy(uiNote);
-        return;
-    }
-
-    // Convert screen space to canvas space
-    RectTransformUtility.ScreenPointToLocalPointInRectangle(
-        canvasRect,
-        screenPosition,
-        parentCanvas.worldCamera,
-        out Vector2 uiStartPosition
-    );
-
-    // Set the UI note's starting position
-    uiNoteRect.anchoredPosition = uiStartPosition;
-
-    // Copy the number from the world note to the UI note
-    TextMeshPro worldText = worldNote.GetComponentInChildren<TextMeshPro>();
-    TextMeshProUGUI uiText = uiNote.GetComponentInChildren<TextMeshProUGUI>();
-    if (worldText != null && uiText != null)
-    {
-        uiText.text = worldText.text;
-    }
-
-    // Convert the target element's position to screen space relative to the same camera
-    Vector3 targetScreenPosition = currentCamera.WorldToScreenPoint(targetElement.position);
-
-    // Convert target screen space to canvas space
-    RectTransformUtility.ScreenPointToLocalPointInRectangle(
-        canvasRect,
-        targetScreenPosition,
-        parentCanvas.worldCamera,
-        out Vector2 uiTargetPosition
-    );
-
-    // Animate the UI note to the target position
-    float animationDuration = 1.5f; // Adjust for speed
-    uiNoteRect.DOAnchorPos(uiTargetPosition, animationDuration).SetEase(Ease.InOutQuad).OnComplete(() =>
-    {
-        // Destroy the UI note after it reaches the target
-        Destroy(uiNote);
-        Debug.Log($"UI note {uiNote.name} successfully reached target: {targetElement.name}");
-    });
-}
 
 
 

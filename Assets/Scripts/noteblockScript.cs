@@ -47,17 +47,27 @@ public class NoteBlockScript : MonoBehaviour
             TextMeshProUGUI textComponent = element.GetComponent<TextMeshProUGUI>();
             if (textComponent != null && int.TryParse(textComponent.text, out int factorValue))
             {
-                factorTreeMap[element] = factorValue;
+                // Keep a specific node always visible
+                if (element.name == "ChosenFactor" || element == factorTreeElements[0]) // Adjust condition as needed
+                {
+                    textComponent.alpha = 1f; // Make this node visible
+                }
+                else
+                {
+                    textComponent.alpha = 0f; // Hide other nodes initially
+                }
+
+                factorTreeMap[element] = factorValue; // Store the factor value
             }
         }
 
         foreach (var element in factorTreeElements)
         {
-            // Initialise factor counts for each factor tree element
-            factorTreeCounts[element] = 0; // Everyone starts at 0, no freebies here
+            // Initialize factor counts for each factor tree element
+            factorTreeCounts[element] = 0; // Everyone starts at 0
         }
 
-        // Initialising default colours and scales for Noteblocks
+        // Initializing default colors and scales for Noteblocks
         if (this.gameObject.name == "GNoteblocks")
         {
             defaultGreenColor = RefToNoteblocks[0].GetComponent<SpriteRenderer>().color;
@@ -210,7 +220,8 @@ public class NoteBlockScript : MonoBehaviour
 
         foreach (var pair in factorTreeMap)
         {
-            if (pair.Value == spawner.assignedFactor) // Match with factor tree
+            // Match the factor value and ensure the node isn't already full
+            if (pair.Value == spawner.assignedFactor && factorTreeCounts[pair.Key] < 7)
             {
                 // Dynamically find the correct camera based on BlockType
                 Camera activeCamera = (BlockType == NoteBlockType.GNoteblocks)
@@ -226,16 +237,19 @@ public class NoteBlockScript : MonoBehaviour
                 // Send the note flying with the correct camera
                 AnimateNumberFlying(note.gameObject, pair.Key, activeCamera);
 
+                // Update the tree node text and visibility
+                UpdateFactorTreeNode(pair.Key);
+
                 // Increment factor tree count
                 factorTreeCounts[pair.Key]++;
-                if (factorTreeCounts[pair.Key] >= 4)
+                if (factorTreeCounts[pair.Key] >= 7)
                 {
+                    TriggerNodeFullFeedback(pair.Key);
                     TextMeshProUGUI textComponent = pair.Key.GetComponent<TextMeshProUGUI>();
                     string factorValueText = textComponent != null ? textComponent.text : "Unknown";
 
                     DisplayFeedback($"Factor {factorValueText} Full!");
-                    Debug.Log($"Factor tree element {factorValueText} is full!");
-                   
+
                     Transform existingIndicator = pair.Key.Find("FullIndicator");
                     if (existingIndicator == null && fullIndicatorPrefab != null)
                     {
@@ -260,6 +274,7 @@ public class NoteBlockScript : MonoBehaviour
         Debug.Log($"No match found for factor {spawner.assignedFactor}");
         DisplayFeedback("Wrong Factor");
     }
+
     void AnimateNumberFlying(GameObject worldNote, Transform targetElement, Camera currentCamera)
     {
         // Reference the parent canvas (must be in Screen Space - Overlay)
@@ -378,6 +393,45 @@ public class NoteBlockScript : MonoBehaviour
             }
         }
     }
+    void UpdateFactorTreeNode(Transform node)
+    {
+        TextMeshProUGUI nodeText = node.GetComponent<TextMeshProUGUI>();
+        if (nodeText != null && nodeText.alpha == 0f) // Only update if hidden
+        {
+            nodeText.alpha = 0f; // Ensure it's hidden initially
+            nodeText.text = factorTreeMap[node].ToString(); // Set the text
+            nodeText.DOFade(1f, 0.5f).SetEase(Ease.InOutQuad); // Fade in animation
+        }
+    }
+
+
+    void TriggerNodeFullFeedback(Transform node)
+    {
+        TextMeshProUGUI nodeText = node.GetComponent<TextMeshProUGUI>();
+        if (nodeText != null && nodeText.alpha == 1f) // Only proceed if the text is visible
+        {
+            // Highlight the node with a glow effect
+            GameObject glowEffect = Instantiate(fullIndicatorPrefab, node);
+            glowEffect.name = "FullIndicator";
+
+            RectTransform indicatorRect = glowEffect.GetComponent<RectTransform>();
+            if (indicatorRect != null)
+            {
+                indicatorRect.anchoredPosition = new Vector2(0, 65); // Position above the node
+            }
+
+            // Play glow animation
+            glowEffect.transform.localScale = Vector3.zero; // Start small
+            glowEffect.transform.DOScale(Vector3.one * 1.5f, 0.5f).SetEase(Ease.OutBounce).OnComplete(() =>
+            {
+                glowEffect.transform.DOScale(Vector3.one, 0.3f); // Settle to normal size
+            });
+
+            // Change text color to indicate completion
+            nodeText.DOColor(Color.yellow, 0.5f).SetLoops(2, LoopType.Yoyo);
+        }
+    }
+
     void DisplayFeedback(string feedbackText)
     {
         if (feedbackTextUI != null)

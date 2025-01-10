@@ -31,7 +31,7 @@ public class ChartLoaderTest : MonoBehaviour
 
     #region Game Settings
     [TabGroup("General Settings")]
-    [SerializeField, Range(1f, 20f), Tooltip("The game speed.")]
+    [SerializeField, Range(1f, 60f), Tooltip("The game speed.")]
     private float _speed = 1f;
     public float Speed
     {
@@ -225,6 +225,57 @@ public class ChartLoaderTest : MonoBehaviour
         CameraMovement.enabled = true;
         PlayMusic();
     }
+    public void InitializeChart()
+    {
+        string currentDifficulty;
+
+        // Read chart file
+        ChartReader chartReader = new ChartReader();
+        Chart = chartReader.ReadChartFile(Application.dataPath + Path);
+
+        // Retrieve difficulty and spawn notes
+        currentDifficulty = RetrieveDifficulty();
+
+        SpawnNotes(Chart.GetNotes(currentDifficulty));
+        SpawnStarPower(Chart.GetStarPower(currentDifficulty));
+        SpawnSynchTracks(Chart.SynchTracks);
+
+        StartSong();
+    }
+
+    public void ReloadChart()
+    {
+        // Clear previously instantiated elements (if any)
+        ClearExistingNotes();
+
+        string currentDifficulty;
+
+        // Read the new chart file
+        ChartReader chartReader = new ChartReader();
+        Chart = chartReader.ReadChartFile(Application.dataPath + Path);
+
+        // Retrieve difficulty and spawn notes
+        currentDifficulty = RetrieveDifficulty();
+
+        SpawnNotes(Chart.GetNotes(currentDifficulty));
+        SpawnStarPower(Chart.GetStarPower(currentDifficulty));
+        SpawnSynchTracks(Chart.SynchTracks);
+
+        StartSong();
+    }
+
+    private void ClearExistingNotes()
+    {
+        // Destroy all children of the chart loader's parent (or note parent object)
+        foreach (Transform child in transform)
+        {
+            Destroy(child.gameObject);
+        }
+
+        // Optionally, reset other elements (e.g., UI, counters)
+        Debug.Log("Existing notes and objects cleared.");
+    }
+
 
     private void PlayMusic() => Music.Play();
 

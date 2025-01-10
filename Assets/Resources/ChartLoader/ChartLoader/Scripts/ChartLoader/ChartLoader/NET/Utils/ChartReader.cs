@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 using ChartLoader.NET.Utils;
 
@@ -35,7 +36,7 @@ namespace ChartLoader.NET.Utils
         /// </summary>
         public Chart Chart
         {
-            get 
+            get
             {
                 return _chart;
             }
@@ -89,7 +90,7 @@ namespace ChartLoader.NET.Utils
         public Chart ParseChartText(string chartText)
         {
             string[] stringLines = chartText.Split(
-                new string[] { Environment.NewLine }, 
+                new string[] { Environment.NewLine },
                 StringSplitOptions.None
                 );
 
@@ -134,23 +135,36 @@ namespace ChartLoader.NET.Utils
         /// <param name="line">The line to process.</param>
         private void ProcessLine(string line)
         {
-            switch(line)
+            Debug.Log($"Processing line: {line}");
+
+            try
             {
-                case "[Song]":
-                    _chart.ProcessEnumerator(_fileScanner);
-                    break;
+                switch (line)
+                {
+                    case "[Song]":
+                        Debug.Log("Processing [Song] section");
+                        _chart.ProcessEnumerator(_fileScanner);
+                        break;
 
-                case "[SyncTrack]":
-                    _chart.SynchTracks = SynchTrack.ProcessSynchTracks(_fileScanner, Chart);
-                    break;
+                    case "[SyncTrack]":
+                        Debug.Log("Processing [SyncTrack] section");
+                        _chart.SynchTracks = SynchTrack.ProcessSynchTracks(_fileScanner, Chart);
+                        break;
 
-                case "[Events]":
-                    _chart.Sections = Section.ProcessEvents(_fileScanner, Chart);
-                    break;
+                    case "[Events]":
+                        Debug.Log("Processing [Events] section");
+                        _chart.Sections = Section.ProcessEvents(_fileScanner, Chart);
+                        break;
 
-                default:
-                    ProcessNoteEvents(line);
-                    break;
+                    default:
+                        Debug.Log($"Processing notes or unknown section: {line}");
+                        ProcessNoteEvents(line);
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error processing line: {line}. Exception: {ex.Message}");
             }
         }
 
@@ -212,7 +226,7 @@ namespace ChartLoader.NET.Utils
             container.Add("Notes", playerNotes);
             container.Add("SP", playerSP);
 
-            Chart.Notes.Add(NoteType, 
+            Chart.Notes.Add(NoteType,
                 container);
 
         }
@@ -234,7 +248,11 @@ namespace ChartLoader.NET.Utils
             string keyParent
             )
         {
-            EventLine eventLine = new EventLine(line);
+            Debug.Log($"Parsing line: {line}");
+
+            try 
+            {
+                EventLine eventLine = new EventLine(line);
 
             // Create a new INoteable and process the provided line
             currentEvent = new NoteEvent(Chart, eventLine, keyParent);
@@ -296,6 +314,12 @@ namespace ChartLoader.NET.Utils
 
                 previousEvent = currentEvent;
             }
+            }
+            catch (FormatException ex)
+            {
+                Debug.LogError($"Failed to parse line: {line}. Error: {ex.Message}");
+            }
+            
         }
     }
 }

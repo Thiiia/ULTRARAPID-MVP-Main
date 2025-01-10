@@ -8,7 +8,7 @@
   PreviewEnd = 0
   Genre = "rock"
   MediaType = "cd"
-  GuitarStream = "D:\Daddy\Downloads\Linkin Park - Papercut-20241126T142422Z-001\Linkin Park - Papercut\guitar.ogg"
+  GuitarStream = "Songs\PapercutAudio.mp3"
 }
 [SyncTrack]
 {

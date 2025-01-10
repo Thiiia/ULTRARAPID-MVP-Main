@@ -1,7 +1,10 @@
 ﻿using UnityEngine;
 using ChartLoader.NET.Framework;
 using ChartLoader.NET.Utils;
-using Sirenix.OdinInspector; // Import Odin namespace
+using Sirenix.OdinInspector; // Odin namespace
+using System.IO; //  System.IO 
+using UnityEngine.Networking; // For WebGL compatibility
+using System.Collections; // For IEnumerator
 
 public class ChartLoaderTest : MonoBehaviour
 {
@@ -41,7 +44,7 @@ public class ChartLoaderTest : MonoBehaviour
 
     [TabGroup("General Settings")]
     [SerializeField]
-    private string _path;
+    private string _path; // Path relative to StreamingAssets
     public string Path
     {
         get { return _path; }
@@ -110,19 +113,101 @@ public class ChartLoaderTest : MonoBehaviour
     #region Start and Initialization
     void Start()
     {
-        string currentDifficulty;
+        LoadAndInitializeChart();
+    }
+    private void LoadAndInitializeChart()
+    {
+        string chartPath = System.IO.Path.Combine(Application.streamingAssetsPath, _path);
 
-        // Read chart file
+        if (Application.platform == RuntimePlatform.WebGLPlayer)
+        {
+            StartCoroutine(LoadChartWebGL(chartPath));
+        }
+        else if (File.Exists(chartPath))
+        {
+            LoadChartFromPath(chartPath);
+        }
+        else
+        {
+            Debug.LogError($"Chart file not found at: {chartPath}. Ensure the file exists in the StreamingAssets folder.");
+        }
+    }
+
+    public void ReloadChart()
+    {
+        ClearExistingNotes();
+
+        string chartPath = System.IO.Path.Combine(Application.streamingAssetsPath, _path);
+
+        if (Application.platform == RuntimePlatform.WebGLPlayer)
+        {
+            StartCoroutine(LoadChartWebGL(chartPath));
+        }
+        else if (File.Exists(chartPath))
+        {
+            LoadChartFromPath(chartPath);
+        }
+        else
+        {
+            Debug.LogError($"Chart file not found at: {chartPath}. Ensure the file exists in the StreamingAssets folder.");
+        }
+    }
+
+    private void LoadChartFromPath(string chartPath)
+    {
+        Debug.Log($"Loading chart from: {chartPath}");
         ChartReader chartReader = new ChartReader();
-        Chart = chartReader.ReadChartFile(Application.dataPath + Path);
+        Chart = chartReader.ReadChartFile(chartPath);
 
-        // Retrieve difficulty and spawn notes
-        currentDifficulty = RetrieveDifficulty();
+        if (Chart != null)
+        {
+            Debug.Log("Chart successfully loaded!");
+            InitializeChartContent();
+        }
+        else
+        {
+            Debug.LogError($"Failed to load chart at: {chartPath}");
+        }
+    }
 
+    public IEnumerator LoadChartWebGL(string chartPath)
+    {
+        Debug.Log($"Attempting to load chart from WebGL path: {chartPath}");
+
+        using (UnityWebRequest uwr = UnityWebRequest.Get(chartPath))
+        {
+            yield return uwr.SendWebRequest();
+
+            if (uwr.result == UnityWebRequest.Result.Success)
+            {
+                Debug.Log($"Chart successfully loaded from: {chartPath}");
+                string chartData = uwr.downloadHandler.text;
+
+                ChartReader chartReader = new ChartReader();
+                Chart = chartReader.ParseChartText(chartData); // Use raw chart data
+
+                if (Chart != null)
+                {
+                    InitializeChartContent();
+                }
+                else
+                {
+                    Debug.LogError("Failed to parse chart data.");
+                }
+            }
+            else
+            {
+                Debug.LogError($"Failed to load chart from WebGL path: {chartPath}, Error: {uwr.error}");
+            }
+        }
+    }
+
+    private void InitializeChartContent()
+    {
+        string currentDifficulty = RetrieveDifficulty();
         SpawnNotes(Chart.GetNotes(currentDifficulty));
         SpawnStarPower(Chart.GetStarPower(currentDifficulty));
         SpawnSynchTracks(Chart.SynchTracks);
-
         StartSong();
     }
     #endregion
@@ -168,50 +253,35 @@ public class ChartLoaderTest : MonoBehaviour
     #region Spawn Methods
     private void SpawnSynchTracks(SynchTrack[] synchTracks)
     {
-        Transform tmp;
-        foreach (SynchTrack synchTrack in synchTracks)
-        {
-            // tmp = SpawnPrefab(BpmPrefab, transform, new Vector3(3f, 0, synchTrack.Seconds * Speed));
-            // tmp.GetChild(0).GetComponent<TextMesh>().text = "BPM: " + (synchTrack.BeatsPerMinute / 1000) + " " + synchTrack.Measures + "/" + synchTrack.Measures;
-        }
+        // Handle synchronization tracks (if necessary)
     }
 
     private void SpawnStarPower(StarPower[] starPowers)
     {
-        Transform tmp;
         foreach (StarPower starPower in starPowers)
         {
-            tmp = SpawnPrefab(StarPowerPrefab, transform, new Vector3(0, 0, starPower.Seconds * Speed));
+            Transform tmp = SpawnPrefab(StarPowerPrefab, transform, new Vector3(0, 0, starPower.Seconds * Speed));
             tmp.localScale = new Vector3(1, 1, starPower.DurationSeconds * Speed);
         }
     }
 
     private void SpawnNotes(Note[] notes)
     {
-        Transform noteTmp;
-        float z;
-
         foreach (Note note in notes)
         {
-            z = note.Seconds * Speed;
-            for (int i = 0; i < 4; i++)
+            float z = note.Seconds * Speed;
+            for (int i = 0; i < SolidNotes.Length; i++)
             {
-                if (note.ButtonIndexes[i]) // Checks which note button (e.g., green, red, etc.) is active
+                if (note.ButtonIndexes[i])
                 {
-                    noteTmp = SpawnPrefab(SolidNotes[i], transform, new Vector3(i - 1.5f, 0, z)); // Position of the notes
+                    Transform noteTmp = SpawnPrefab(SolidNotes[i], transform, new Vector3(i - 1.5f, 0, z));
                     SetLongNoteScale(noteTmp.GetChild(0), note.DurationSeconds * Speed);
 
-                    // Assign timing data to the NoteFactorSpawner
                     var spawner = noteTmp.GetComponent<NoteFactorSpawner>();
                     if (spawner != null)
                     {
-                        spawner.expectedHitTime = note.Seconds; // Set the expected hit time
+                        spawner.expectedHitTime = note.Seconds;
                     }
-
-                    if (note.IsHOPO)
-                        SetHOPO(noteTmp);
-                    else
-                        SetHammerOnColor(noteTmp, (note.IsHammerOn && !note.IsChord && !note.ForcedSolid));
                 }
             }
         }
@@ -225,57 +295,6 @@ public class ChartLoaderTest : MonoBehaviour
         CameraMovement.enabled = true;
         PlayMusic();
     }
-    public void InitializeChart()
-    {
-        string currentDifficulty;
-
-        // Read chart file
-        ChartReader chartReader = new ChartReader();
-        Chart = chartReader.ReadChartFile(Application.dataPath + Path);
-
-        // Retrieve difficulty and spawn notes
-        currentDifficulty = RetrieveDifficulty();
-
-        SpawnNotes(Chart.GetNotes(currentDifficulty));
-        SpawnStarPower(Chart.GetStarPower(currentDifficulty));
-        SpawnSynchTracks(Chart.SynchTracks);
-
-        StartSong();
-    }
-
-    public void ReloadChart()
-    {
-        // Clear previously instantiated elements (if any)
-        ClearExistingNotes();
-
-        string currentDifficulty;
-
-        // Read the new chart file
-        ChartReader chartReader = new ChartReader();
-        Chart = chartReader.ReadChartFile(Application.dataPath + Path);
-
-        // Retrieve difficulty and spawn notes
-        currentDifficulty = RetrieveDifficulty();
-
-        SpawnNotes(Chart.GetNotes(currentDifficulty));
-        SpawnStarPower(Chart.GetStarPower(currentDifficulty));
-        SpawnSynchTracks(Chart.SynchTracks);
-
-        StartSong();
-    }
-
-    private void ClearExistingNotes()
-    {
-        // Destroy all children of the chart loader's parent (or note parent object)
-        foreach (Transform child in transform)
-        {
-            Destroy(child.gameObject);
-        }
-
-        // Optionally, reset other elements (e.g., UI, counters)
-        Debug.Log("Existing notes and objects cleared.");
-    }
-
 
     private void PlayMusic() => Music.Play();
 
@@ -304,6 +323,16 @@ public class ChartLoaderTest : MonoBehaviour
     {
         SpriteRenderer renderer = note.GetComponent<SpriteRenderer>();
         renderer.color = new Color(0.75f, 0, 0.75f);
+    }
+
+    private void ClearExistingNotes()
+    {
+        foreach (Transform child in transform)
+        {
+            Destroy(child.gameObject);
+        }
+
+        Debug.Log("Existing notes and objects cleared.");
     }
     #endregion
 }

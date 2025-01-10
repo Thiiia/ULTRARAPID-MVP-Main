@@ -10,7 +10,7 @@ PreviewStart = 0
 PreviewEnd = 0
 Genre = "Drum and Bass"
 MediaType = "cd"
-MusicStream = "D:\Daddy\Downloads\Sub Focus - Vibration (One More Time) (Visualiser) ft. ARCO [TubeRipper.com].mp3"
+MusicStream = "Songs/VibrationAudio.mp3"
 }
 [SyncTrack]
 {

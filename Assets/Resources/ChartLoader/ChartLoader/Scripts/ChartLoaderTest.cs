@@ -117,6 +117,7 @@ public class ChartLoaderTest : MonoBehaviour
     }
     private void LoadAndInitializeChart()
     {
+        ClearExistingNotes(); // Clear any residual notes before loading
         string chartPath = System.IO.Path.Combine(Application.streamingAssetsPath, _path);
 
         if (Application.platform == RuntimePlatform.WebGLPlayer)
@@ -135,7 +136,11 @@ public class ChartLoaderTest : MonoBehaviour
 
     public void ReloadChart()
     {
-        ClearExistingNotes();
+        Debug.Log("Reloading chart...");
+
+        ClearExistingNotes(); // Clear old notes
+        Chart = null;         // Reset chart object
+        Debug.Log("Chart and notes cleared.");
 
         string chartPath = System.IO.Path.Combine(Application.streamingAssetsPath, _path);
 
@@ -149,7 +154,7 @@ public class ChartLoaderTest : MonoBehaviour
         }
         else
         {
-            Debug.LogError($"Chart file not found at: {chartPath}. Ensure the file exists in the StreamingAssets folder.");
+            Debug.LogError($"Chart file not found: {chartPath}");
         }
     }
 
@@ -173,6 +178,7 @@ public class ChartLoaderTest : MonoBehaviour
     public IEnumerator LoadChartWebGL(string chartPath)
     {
         Debug.Log($"Attempting to load chart from WebGL path: {chartPath}");
+        Chart = null; // Reset chart object before loading
 
         using (UnityWebRequest uwr = UnityWebRequest.Get(chartPath))
         {
@@ -188,6 +194,7 @@ public class ChartLoaderTest : MonoBehaviour
 
                 if (Chart != null)
                 {
+                    Debug.Log($"Chart initialized:");
                     InitializeChartContent();
                 }
                 else
@@ -201,6 +208,7 @@ public class ChartLoaderTest : MonoBehaviour
             }
         }
     }
+
 
     private void InitializeChartContent()
     {
@@ -325,14 +333,16 @@ public class ChartLoaderTest : MonoBehaviour
         renderer.color = new Color(0.75f, 0, 0.75f);
     }
 
-    private void ClearExistingNotes()
+    public void ClearExistingNotes()
     {
+        Debug.Log("Clearing existing notes...");
         foreach (Transform child in transform)
         {
+            Debug.Log($"Destroying note: {child.name}");
             Destroy(child.gameObject);
         }
-
-        Debug.Log("Existing notes and objects cleared.");
+        Debug.Log("All notes and objects cleared.");
     }
+
     #endregion
 }

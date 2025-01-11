@@ -1,14 +1,5 @@
-﻿[Song]
+[Song]
 {
-  Offset = 0
-  Resolution = 480
-  Player2 = bass
-  Difficulty = 0
-  PreviewStart = 0
-  PreviewEnd = 0
-  Genre = "rock"
-  MediaType = "cd"
-  GuitarStream = "Songs\PapercutAudio.mp3"
 }
 [SyncTrack]
 {

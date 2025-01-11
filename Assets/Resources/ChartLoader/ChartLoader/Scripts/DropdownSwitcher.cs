@@ -38,6 +38,10 @@ public class DropdownSwitcher : MonoBehaviour
     {
         Debug.Log($"Dropdown value changed to index: {index}");
         SelectedIndex = index; // Save the new selection
+
+        // Log current chart and audio paths
+        Debug.Log($"Current chart path: {chartPaths[index]}, audio path: {audioPaths[index]}");
+
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); // Reload the scene
     }
 
@@ -45,13 +49,25 @@ public class DropdownSwitcher : MonoBehaviour
     {
         Debug.Log($"Applying settings for index: {index}");
 
+        // Clear existing chart and notes
+        ChartLoaderTest chartLoader = FindObjectOfType<ChartLoaderTest>();
+        if (chartLoader != null)
+        {
+            chartLoader.ClearExistingNotes();
+            ChartLoaderTest.Chart = null; // Reset the chart object
+            Debug.Log("Cleared existing notes and chart.");
+        }
+        else
+        {
+            Debug.LogError("ChartLoaderTest instance not found in the scene.");
+        }
+
         // Load and apply the chart
         if (chartPaths.Length > index)
         {
             string chartFullPath = Path.Combine(Application.streamingAssetsPath, chartPaths[index]);
             Debug.Log($"Switching chart to path: {chartFullPath}");
 
-            ChartLoaderTest chartLoader = FindObjectOfType<ChartLoaderTest>();
             if (chartLoader != null)
             {
                 chartLoader.Path = chartPaths[index];
@@ -64,10 +80,6 @@ public class DropdownSwitcher : MonoBehaviour
                     chartLoader.ReloadChart(); // Windows and other platforms
                 }
             }
-            else
-            {
-                Debug.LogError("ChartLoaderTest instance not found in the scene.");
-            }
         }
 
         // Load and apply the audio
@@ -78,6 +90,7 @@ public class DropdownSwitcher : MonoBehaviour
             StartCoroutine(LoadAudio(audioFullPath));
         }
     }
+
 
     IEnumerator LoadAudio(string path)
     {
@@ -115,13 +128,16 @@ public class DropdownSwitcher : MonoBehaviour
     {
         Debug.Log("Loading initial settings...");
 
-        // Load the default chart
-        if (chartPaths.Length > 0)
+        ChartLoaderTest chartLoader = FindObjectOfType<ChartLoaderTest>();
+        if (chartLoader != null)
         {
-            string chartFullPath = Path.Combine(Application.streamingAssetsPath, chartPaths[0]);
-            ChartLoaderTest chartLoader = FindObjectOfType<ChartLoaderTest>();
-            if (chartLoader != null)
+            // Load the default chart
+            if (chartPaths.Length > 0)
             {
+                chartLoader.ClearExistingNotes(); // Clear any pre-existing notes
+                ChartLoaderTest.Chart = null; // Reset the chart object
+
+                string chartFullPath = Path.Combine(Application.streamingAssetsPath, chartPaths[0]);
                 chartLoader.Path = chartPaths[0];
                 if (Application.platform == RuntimePlatform.WebGLPlayer)
                 {
@@ -133,6 +149,10 @@ public class DropdownSwitcher : MonoBehaviour
                 }
             }
         }
+        else
+        {
+            Debug.LogError("ChartLoaderTest instance not found in the scene.");
+        }
 
         // Load the default audio
         if (audioPaths.Length > 0)
@@ -141,4 +161,5 @@ public class DropdownSwitcher : MonoBehaviour
             yield return LoadAudio(audioFullPath);
         }
     }
+
 }

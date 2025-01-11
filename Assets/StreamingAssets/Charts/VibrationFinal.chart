@@ -1,16 +1,5 @@
-﻿[Song]
+[Song]
 {
-Name = "Vibration (One More Time)"
-Artist = "Sub Focus"
-Offset = 0
-Resolution = 192
-Player2 = bass
-Difficulty = 0
-PreviewStart = 0
-PreviewEnd = 0
-Genre = "Drum and Bass"
-MediaType = "cd"
-MusicStream = "Songs/VibrationAudio.mp3"
 }
 [SyncTrack]
 {
@@ -108,12 +97,6 @@ MusicStream = "Songs/VibrationAudio.mp3"
 212160 = B 149061
   0 = B 120000
 224160 = B 150345
-}
-{
-  0 = TS 4
-0 = TS 4
-  0 = B 120000
-0 = B 120000
 }
 [Events]
 {

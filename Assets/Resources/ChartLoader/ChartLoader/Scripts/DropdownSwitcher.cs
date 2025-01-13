@@ -45,12 +45,29 @@ public class DropdownSwitcher : MonoBehaviour
     void OnDropdownValueChanged(int index)
     {
         Debug.Log($"Dropdown value changed to index: {index}");
-        SelectedIndex = index; // Save the new selection
 
-        // Log current chart and audio paths
-        Debug.Log($"Current chart path: {chartPaths[index]}, audio path: {audioPaths[index]}");
+        // Update chart path for the selected chart
+        string selectedChartPath = chartPaths[index];
+        string selectedAudioPath = audioPaths[index];
 
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); // Reload the scene
+        // Update the ChartLoaderTest with the new paths
+        ChartLoaderTest chartLoader = FindObjectOfType<ChartLoaderTest>();
+        if (chartLoader != null)
+        {
+            chartLoader.Path = selectedChartPath; // Update the chart path
+            chartLoader.Music.clip = Resources.Load<AudioClip>(selectedAudioPath); // Load the new audio
+            chartLoader.Music.Stop(); // Stop current audio playback
+            chartLoader.ClearExistingNotes(); // Clear the notes for the previous chart
+
+            Debug.Log($"Applying settings for new chart: {selectedChartPath}");
+
+            // Reinitialize songStartTime, songLength, and reload the chart
+            chartLoader.LoadAndInitializeChart();
+        }
+        else
+        {
+            Debug.LogError("ChartLoaderTest instance not found!");
+        }
     }
     void ApplySettings(int index)
     {
@@ -104,38 +121,38 @@ public class DropdownSwitcher : MonoBehaviour
 
 
 
- IEnumerator LoadAudio(string path)
-{
-    string url = path;
-    if (Application.platform == RuntimePlatform.WebGLPlayer)
+    IEnumerator LoadAudio(string path)
     {
-        url = path; // Use the URL directly for WebGL
-    }
-
-    Debug.Log($"Attempting to load audio from: {url}");
-
-    using (UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(url, AudioType.MPEG)) // Change AudioType if needed
-    {
-        yield return uwr.SendWebRequest();
-
-        if (uwr.result == UnityWebRequest.Result.Success)
+        string url = path;
+        if (Application.platform == RuntimePlatform.WebGLPlayer)
         {
-            Debug.Log($"Successfully loaded audio from: {url}");
-            AudioClip clip = DownloadHandlerAudioClip.GetContent(uwr);
-            if (audioSource != null)
+            url = path; // Use the URL directly for WebGL
+        }
+
+        Debug.Log($"Attempting to load audio from: {url}");
+
+        using (UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(url, AudioType.MPEG)) // Change AudioType if needed
+        {
+            yield return uwr.SendWebRequest();
+
+            if (uwr.result == UnityWebRequest.Result.Success)
             {
-                audioSource.Stop(); // Ensure the current audio is stopped
-                audioSource.clip = clip; // Assign the new audio clip
-                audioSource.Play(); // Start playing the new audio
-                Debug.Log("Started playing new audio.");
+                Debug.Log($"Successfully loaded audio from: {url}");
+                AudioClip clip = DownloadHandlerAudioClip.GetContent(uwr);
+                if (audioSource != null)
+                {
+                    audioSource.Stop(); // Ensure the current audio is stopped
+                    audioSource.clip = clip; // Assign the new audio clip
+                    audioSource.Play(); // Start playing the new audio
+                    Debug.Log("Started playing new audio.");
+                }
+            }
+            else
+            {
+                Debug.LogError($"Failed to load audio from: {url}, Error: {uwr.error}");
             }
         }
-        else
-        {
-            Debug.LogError($"Failed to load audio from: {url}, Error: {uwr.error}");
-        }
     }
-}
 
 
     IEnumerator LoadInitialSettings()

@@ -4,7 +4,11 @@ public class CameraMovement : MonoBehaviour
 {
     private float _speed;
     private double songStartTime; // DSP time when the song starts
+    public double SongStartTime => songStartTime;
+
     private float songLength;    // Length of the song
+    private float initialZPosition; // Initial Z position of the camera
+
 
     /// <summary>
     /// The Camera Speed.
@@ -22,7 +26,8 @@ public class CameraMovement : MonoBehaviour
     {
         songStartTime = startTime;
         songLength = length; // Assign song length
-        Debug.Log($"CameraMovement: Initialized with start time: {songStartTime}, song length: {songLength}");
+        initialZPosition = transform.position.z; // Save the initial Z position
+        Debug.Log($"CameraMovement: Initialized with start time: {songStartTime}, song length: {songLength}, initial Z position: {initialZPosition}");
     }
 
     // Update camera position based on DSP time
@@ -43,12 +48,13 @@ public class CameraMovement : MonoBehaviour
             currentSongTime = songLength; // Clamp to the maximum duration
         }
 
-        // Calculate the camera's Z position
-        float cameraZPosition = Mathf.Max(0, (float)(currentSongTime * Speed));
+        // Calculate the camera's Z position based on song time and initial offset
+        float calculatedZPosition = (float)(currentSongTime * Speed) + initialZPosition;
 
         // Update camera position
-        transform.position = new Vector3(transform.position.x, transform.position.y, cameraZPosition);
+        transform.position = new Vector3(transform.position.x, transform.position.y, calculatedZPosition);
 
-        Debug.Log($"Camera Position: {transform.position.z}, Song Time: {currentSongTime}");
+        Debug.Log($"Calculated Camera Z Position: {calculatedZPosition}");
+        Debug.Log($"Final Applied Camera Position: {transform.position.z}, Song Time: {currentSongTime}");
     }
 }

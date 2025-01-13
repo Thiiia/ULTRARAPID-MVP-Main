@@ -127,15 +127,14 @@ public class ChartLoaderTest : MonoBehaviour
         double dspTime = AudioSettings.dspTime; // Get DSP time
         Music.PlayScheduled(dspTime); // Start the music at DSP time
 
-        // Find the camera movement script on the correct parent container
-        CameraMovement cameraMovement = GameObject.Find("Guitar Camera")?.GetComponent<CameraMovement>();
-        if (cameraMovement != null)
+        // Find the CameraMovement component and initialize it
+        if (CameraMovement != null)
         {
-            cameraMovement.Initialize(dspTime, songLength); // Pass songStartTime and songLength
+            CameraMovement.Initialize(dspTime, songLength); // Pass songStartTime and songLength
         }
         else
         {
-            Debug.LogError("CameraMovement script is not attached to the expected object.");
+            Debug.LogError("CameraMovement script is not assigned or found.");
         }
 
         LoadAndInitializeChart();
@@ -239,21 +238,57 @@ public class ChartLoaderTest : MonoBehaviour
 
     private bool _isChartInitialized = false;
 
-    private void InitializeChartContent()
+   private void InitializeChartContent()
+{
+    if (_isChartInitialized)
     {
-        if (_isChartInitialized)
-        {
-            Debug.LogWarning("Chart is already initialized. Skipping re-initialization.");
-            return;
-        }
-
-        _isChartInitialized = true;
-        string currentDifficulty = RetrieveDifficulty();
-        SpawnNotes(Chart.GetNotes(currentDifficulty));
-        SpawnStarPower(Chart.GetStarPower(currentDifficulty));
-        SpawnSynchTracks(Chart.SynchTracks);
-        StartSong();
+        Debug.LogWarning("Chart is already initialized. Skipping re-initialization.");
+        return;
     }
+
+    _isChartInitialized = true;
+
+    string currentDifficulty = RetrieveDifficulty();
+
+    // Spawn Notes
+    SpawnNotes(Chart.GetNotes(currentDifficulty));
+    SpawnStarPower(Chart.GetStarPower(currentDifficulty));
+    SpawnSynchTracks(Chart.SynchTracks);
+
+    // Adjust Camera Position Based on Notes
+    GameObject notesParent = GameObject.Find("Expert Guitar"); // Replace with your actual notes parent name
+    if (notesParent != null && notesParent.transform.childCount > 0)
+    {
+        // Find the first note's Z position
+        Transform firstNote = notesParent.transform.GetChild(0);
+        float firstNoteZ = firstNote.position.z; // Use world position for consistency
+
+        // Adjust the camera's starting position
+        if (CameraMovement != null)
+        {
+            CameraMovement.Initialize(CameraMovement.SongStartTime, songLength);
+            CameraMovement.transform.position = new Vector3(
+                CameraMovement.transform.position.x,
+                CameraMovement.transform.position.y,
+                firstNoteZ
+            );
+            Debug.Log($"Camera initialized to first note position: {firstNoteZ}");
+        }
+        else
+        {
+            Debug.LogError("CameraMovement script is not attached to the main camera or is null.");
+        }
+    }
+    else
+    {
+        Debug.LogWarning("Notes parent object or notes are missing.");
+    }
+
+    // Start the Song
+    StartSong();
+}
+
+
     #endregion
 
     #region Difficulty Handling

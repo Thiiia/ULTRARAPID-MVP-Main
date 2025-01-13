@@ -2536,7 +2536,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   difficulty: 3
-  _speed: 10.225
+  _speed: 10
   _path: 
   _solidNotes:
   - {fileID: 4400627473677722, guid: 1045ea66b790bf540bcf5df207972c83, type: 3}
@@ -2547,6 +2547,7 @@ MonoBehaviour:
   _sectionPrefab: {fileID: 4622555703069306, guid: c851ea94b3f3a3e4cb465aa97217e19d, type: 3}
   _bpmPrefab: {fileID: 4322006517868176, guid: 44c73da133c080a4fbf59de2fd61ac91, type: 3}
   _music: {fileID: 2054393832}
+  songLength: 0
   _cameraMovement: {fileID: 535378776}
 --- !u!4 &604001353
 Transform:
@@ -8149,6 +8150,7 @@ MonoBehaviour:
   _sectionPrefab: {fileID: 4622555703069306, guid: c851ea94b3f3a3e4cb465aa97217e19d, type: 3}
   _bpmPrefab: {fileID: 4322006517868176, guid: 44c73da133c080a4fbf59de2fd61ac91, type: 3}
   _music: {fileID: 2054393832}
+  songLength: 0
   _cameraMovement: {fileID: 362522265}
 --- !u!4 &1800526939
 Transform:

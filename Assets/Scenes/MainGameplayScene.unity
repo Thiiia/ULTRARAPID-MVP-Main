@@ -2537,7 +2537,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   difficulty: 3
   _speed: 10.225
-  _path: Charts\VibrationFinal.chart
+  _path: 
   _solidNotes:
   - {fileID: 4400627473677722, guid: 1045ea66b790bf540bcf5df207972c83, type: 3}
   - {fileID: 4626359991842112, guid: 01b9310d07202bd43aae6dead229c865, type: 3}
@@ -5476,7 +5476,19 @@ MonoBehaviour:
       m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 0}
+        m_TargetAssemblyTypeName: 
+        m_MethodName: 
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_AlphaFadeSpeed: 0.95
 --- !u!114 &1226002619
 MonoBehaviour:

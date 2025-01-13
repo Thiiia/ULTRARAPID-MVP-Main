@@ -48,7 +48,7 @@ public class ChartLoaderTest : MonoBehaviour
     public string Path
     {
         get { return _path; }
-        set { _path = value; }
+        set { _path = value; Debug.Log($"ChartLoaderTest Path set to: {_path}"); }
     }
     #endregion
 
@@ -99,6 +99,7 @@ public class ChartLoaderTest : MonoBehaviour
         get { return _music; }
         set { _music = value; }
     }
+    public float songLength; // Duration of the song in seconds
 
     [TabGroup("Audio & Camera")]
     [SerializeField, Tooltip("Camera movement aggregation.")]
@@ -111,14 +112,41 @@ public class ChartLoaderTest : MonoBehaviour
     #endregion
 
     #region Start and Initialization
-    void Start()
+    private void Start()
     {
+        if (Music.clip != null)
+        {
+            songLength = Music.clip.length; // Get the length of the AudioClip
+            Debug.Log($"Song Length: {songLength} seconds");
+        }
+        else
+        {
+            Debug.LogError("Music clip is not assigned to the AudioSource.");
+        }
+
+        double dspTime = AudioSettings.dspTime; // Get DSP time
+        Music.PlayScheduled(dspTime); // Start the music at DSP time
+
+        // Find the camera movement script on the correct parent container
+        CameraMovement cameraMovement = GameObject.Find("Guitar Camera")?.GetComponent<CameraMovement>();
+        if (cameraMovement != null)
+        {
+            cameraMovement.Initialize(dspTime, songLength); // Pass songStartTime and songLength
+        }
+        else
+        {
+            Debug.LogError("CameraMovement script is not attached to the expected object.");
+        }
+
         LoadAndInitializeChart();
     }
-    private void LoadAndInitializeChart()
+
+    public void LoadAndInitializeChart()
     {
-        ClearExistingNotes(); // Clear any residual notes before loading
+        ResetLoaderState(); // Ensure state is reset
         string chartPath = System.IO.Path.Combine(Application.streamingAssetsPath, _path);
+
+        Debug.Log($"Attempting to load chart at: {chartPath}");
 
         if (Application.platform == RuntimePlatform.WebGLPlayer)
         {
@@ -209,9 +237,17 @@ public class ChartLoaderTest : MonoBehaviour
         }
     }
 
+    private bool _isChartInitialized = false;
 
     private void InitializeChartContent()
     {
+        if (_isChartInitialized)
+        {
+            Debug.LogWarning("Chart is already initialized. Skipping re-initialization.");
+            return;
+        }
+
+        _isChartInitialized = true;
         string currentDifficulty = RetrieveDifficulty();
         SpawnNotes(Chart.GetNotes(currentDifficulty));
         SpawnStarPower(Chart.GetStarPower(currentDifficulty));
@@ -261,9 +297,8 @@ public class ChartLoaderTest : MonoBehaviour
     #region Spawn Methods
     private void SpawnSynchTracks(SynchTrack[] synchTracks)
     {
-        // Handle synchronization tracks (if necessary)
+        // Handle synchronization
     }
-
     private void SpawnStarPower(StarPower[] starPowers)
     {
         foreach (StarPower starPower in starPowers)
@@ -277,14 +312,19 @@ public class ChartLoaderTest : MonoBehaviour
     {
         foreach (Note note in notes)
         {
-            float z = note.Seconds * Speed;
+            // Calculate Z position relative to song time and speed
+            float z = (float)(note.Seconds * Speed);
+
             for (int i = 0; i < SolidNotes.Length; i++)
             {
                 if (note.ButtonIndexes[i])
                 {
                     Transform noteTmp = SpawnPrefab(SolidNotes[i], transform, new Vector3(i - 1.5f, 0, z));
+
+                    // Set the scale for long notes
                     SetLongNoteScale(noteTmp.GetChild(0), note.DurationSeconds * Speed);
 
+                    // Assign the expected hit time for timing synchronization
                     var spawner = noteTmp.GetComponent<NoteFactorSpawner>();
                     if (spawner != null)
                     {
@@ -294,6 +334,7 @@ public class ChartLoaderTest : MonoBehaviour
             }
         }
     }
+
     #endregion
 
     #region Helper Methods
@@ -344,5 +385,14 @@ public class ChartLoaderTest : MonoBehaviour
         Debug.Log("All notes and objects cleared.");
     }
 
+    public void ResetLoaderState()
+    {
+        Debug.Log("Resetting loader state...");
+        ClearExistingNotes(); // Remove all instantiated notes
+        Chart = null; // Clear static chart data
+        Path = ""; // Reset the path
+        _isChartInitialized = false;
+    }
     #endregion
+
 }

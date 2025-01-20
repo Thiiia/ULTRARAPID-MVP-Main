@@ -4699,8 +4699,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 4.2765107, y: 3.213498, z: 0.41294077}
-  m_Center: {x: -0.29245183, y: -0.25278354, z: -0.106440246}
+  m_Size: {x: 4.2765107, y: 3.751011, z: 0.41294077}
+  m_Center: {x: -0.29245192, y: 0.015974997, z: -0.106439486}
 --- !u!1 &1063472746
 GameObject:
   m_ObjectHideFlags: 0
@@ -7991,9 +7991,9 @@ MonoBehaviour:
   UINoteBluePrefab: {fileID: 7656571208250133743, guid: 4a3f14a31a69f1f43afa823512ee2bcc, type: 3}
   GMainCamera: {fileID: 425136345}
   DMainCamera: {fileID: 25775765}
-  missThreshold: 1
-  goodThreshold: 0.1
-  perfectThreshold: 0.15
+  missThreshold: 0.4
+  goodThreshold: 0.25
+  perfectThreshold: 0.01
   expectedHitTime: 0
   feedbackTextUI: {fileID: 92850857}
   perfectFeedbackPrefab: {fileID: 0}

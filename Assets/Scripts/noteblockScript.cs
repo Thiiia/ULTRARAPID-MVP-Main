@@ -114,7 +114,7 @@ public class NoteBlockScript : MonoBehaviour
             if (!activeNotes.Contains(noteTransform))
             {
                 activeNotes.Add(noteTransform);
-                InteractWithNoteInTrigger(other);
+
             }
         }
     }
@@ -180,37 +180,37 @@ public class NoteBlockScript : MonoBehaviour
 
         Transform note = activeNotes[0];
         NoteFactorSpawner spawner = note.GetComponent<NoteFactorSpawner>();
-
-
         if (spawner == null) return;
 
         double currentDspTime = AudioSettings.dspTime;
-        float theExpectedHitTime = spawner.expectedHitTime;
-        double timingDifference = Math.Abs(currentDspTime - theExpectedHitTime);
+        float triggerWidth = GetComponentInChildren<BoxCollider>().bounds.size.z;
+        ChartLoaderTest chartLoader = FindObjectOfType<ChartLoaderTest>();
 
-
-
-        Debug.Log($"Timing Difference: {timingDifference}, Expected Hit: {spawner.expectedHitTime}, the new calculation also, {theExpectedHitTime} DSP Time: {currentDspTime}");
-
-        if (timingDifference <= perfectThreshold)
+        if (chartLoader != null)
         {
-            DisplayFeedback("Perfect");
-        }
-        else if (timingDifference <= goodThreshold)
-        {
-            DisplayFeedback("Good");
-        }
-        else if (timingDifference <= missThreshold)
-        {
-            DisplayFeedback("Miss");
-        }
-        else
-        {
-            Debug.Log("Timing is outside all thresholds.");
-        }
+            // Calculate midpoint expected hit time based on trigger width
+            double midPointTime = spawner.expectedHitTime - (triggerWidth / 2f / chartLoader.Speed);
+            double timingDifference = Math.Abs(currentDspTime - midPointTime);
 
-        activeNotes.Remove(note);
-        Destroy(note.gameObject);
+            Debug.Log($"Timing Difference: {timingDifference}, Midpoint Expected Hit: {midPointTime}, DSP Time: {currentDspTime}");
+
+            // Determine the hit type based on timing thresholds
+            if (timingDifference <= perfectThreshold)
+            {
+                DisplayFeedback("Perfect");
+            }
+            else if (timingDifference <= (perfectThreshold + goodThreshold) / 2)
+            {
+                DisplayFeedback("Good");
+            }
+            else
+            {
+                DisplayFeedback("Miss");
+            }
+
+            activeNotes.Remove(note);
+            Destroy(note.gameObject);
+        }
     }
 
 

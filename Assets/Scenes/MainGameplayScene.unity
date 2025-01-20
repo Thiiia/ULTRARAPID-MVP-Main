@@ -7993,7 +7993,7 @@ MonoBehaviour:
   DMainCamera: {fileID: 25775765}
   missThreshold: 0.4
   goodThreshold: 0.25
-  perfectThreshold: 0.01
+  perfectThreshold: 0.1
   expectedHitTime: 0
   feedbackTextUI: {fileID: 92850857}
   perfectFeedbackPrefab: {fileID: 0}

@@ -61,6 +61,7 @@ public class ChartLoaderTest : MonoBehaviour
         get { return _solidNotes; }
         set { _solidNotes = value; }
     }
+    private float firstNoteZPosition;
 
     [TabGroup("Prefab Settings")]
     [SerializeField, Tooltip("Prefab for star power.")]
@@ -127,6 +128,7 @@ public class ChartLoaderTest : MonoBehaviour
         double dspTime = AudioSettings.dspTime; // Get DSP time
         Music.PlayScheduled(dspTime); // Start the music at DSP time
 
+
         // Find the CameraMovement component and initialize it
         if (CameraMovement != null)
         {
@@ -165,23 +167,51 @@ public class ChartLoaderTest : MonoBehaviour
     {
         Debug.Log("Reloading chart...");
 
-        ClearExistingNotes(); // Clear old notes
-        Chart = null;         // Reset chart object
+        // Clear existing notes and reset chart state
+        ClearExistingNotes();
+        Chart = null; // Reset chart object
         Debug.Log("Chart and notes cleared.");
 
+        // Get the chart path
         string chartPath = System.IO.Path.Combine(Application.streamingAssetsPath, _path);
 
         if (Application.platform == RuntimePlatform.WebGLPlayer)
         {
-            StartCoroutine(LoadChartWebGL(chartPath));
+            StartCoroutine(LoadChartWebGL(chartPath)); // Handle WebGL chart loading
         }
         else if (File.Exists(chartPath))
         {
-            LoadChartFromPath(chartPath);
+            LoadChartFromPath(chartPath); // Handle local chart loading
         }
         else
         {
             Debug.LogError($"Chart file not found: {chartPath}");
+            return;
+        }
+
+        // Recalculate DSP time and start the music for the new chart
+        if (Music.clip != null)
+        {
+            double dspTime = AudioSettings.dspTime; // Get current DSP time
+            Music.Stop(); // Stop any currently playing music
+            Music.PlayScheduled(dspTime); // Schedule the new song to play
+
+            Debug.Log($"New song scheduled to play at DSP time: {dspTime}");
+
+            // Reinitialize camera and other components with new song timing
+            CameraMovement cameraMovement = GameObject.Find("Guitar Camera").GetComponent<CameraMovement>();
+            if (cameraMovement != null)
+            {
+                cameraMovement.Initialize(dspTime, Music.clip.length);
+            }
+            else
+            {
+                Debug.LogWarning("CameraMovement script not found on main camera.");
+            }
+        }
+        else
+        {
+            Debug.LogError("Music clip is null. Ensure the correct audio file is assigned.");
         }
     }
 
@@ -238,55 +268,56 @@ public class ChartLoaderTest : MonoBehaviour
 
     private bool _isChartInitialized = false;
 
-   private void InitializeChartContent()
-{
-    if (_isChartInitialized)
+    private void InitializeChartContent()
     {
-        Debug.LogWarning("Chart is already initialized. Skipping re-initialization.");
-        return;
-    }
-
-    _isChartInitialized = true;
-
-    string currentDifficulty = RetrieveDifficulty();
-
-    // Spawn Notes
-    SpawnNotes(Chart.GetNotes(currentDifficulty));
-    SpawnStarPower(Chart.GetStarPower(currentDifficulty));
-    SpawnSynchTracks(Chart.SynchTracks);
-
-    // Adjust Camera Position Based on Notes
-    GameObject notesParent = GameObject.Find("Expert Guitar"); // Replace with your actual notes parent name
-    if (notesParent != null && notesParent.transform.childCount > 0)
-    {
-        // Find the first note's Z position
-        Transform firstNote = notesParent.transform.GetChild(0);
-        float firstNoteZ = firstNote.position.z; // Use world position for consistency
-
-        // Adjust the camera's starting position
-        if (CameraMovement != null)
+        if (_isChartInitialized)
         {
-            CameraMovement.Initialize(CameraMovement.SongStartTime, songLength);
-            CameraMovement.transform.position = new Vector3(
-                CameraMovement.transform.position.x,
-                CameraMovement.transform.position.y,
-                firstNoteZ
-            );
-            Debug.Log($"Camera initialized to first note position: {firstNoteZ}");
+            Debug.LogWarning("Chart is already initialized. Skipping re-initialization.");
+            return;
+        }
+
+        _isChartInitialized = true;
+
+        string currentDifficulty = RetrieveDifficulty();
+
+        // Spawn Notes
+        SpawnNotes(Chart.GetNotes(currentDifficulty));
+        SpawnStarPower(Chart.GetStarPower(currentDifficulty));
+        SpawnSynchTracks(Chart.SynchTracks);
+
+        // Adjust Camera Position Based on Notes
+        GameObject notesParent = GameObject.Find("Expert Guitar"); // Notes Container
+        if (notesParent != null && notesParent.transform.childCount > 0)
+        {
+            // Find the first note's Z position
+            Transform firstNote = notesParent.transform.GetChild(0);
+            float firstNoteZ = firstNote.position.z; // Use world position for consistency
+            firstNoteZPosition = firstNote.position.z; // Store the first note position globally
+
+            // Adjust the camera's starting position
+            if (CameraMovement != null)
+            {
+                CameraMovement.Initialize(CameraMovement.SongStartTime, songLength);
+                CameraMovement.transform.position = new Vector3(
+                    CameraMovement.transform.position.x,
+                    CameraMovement.transform.position.y,
+                    firstNoteZ
+                );
+                Debug.Log($"Camera initialized to first note position: {firstNoteZ}");
+            }
+            else
+            {
+                Debug.LogError("CameraMovement script is not attached to the main camera or is null.");
+            }
         }
         else
         {
-            Debug.LogError("CameraMovement script is not attached to the main camera or is null.");
+            Debug.LogWarning("Notes parent object or notes are missing.");
         }
-    }
-    else
-    {
-        Debug.LogWarning("Notes parent object or notes are missing.");
-    }
 
-    // Start the Song
-    StartSong();
-}
+        // Start the Song
+        StartSong();
+    }
 
 
     #endregion
@@ -343,32 +374,39 @@ public class ChartLoaderTest : MonoBehaviour
         }
     }
 
-    private void SpawnNotes(Note[] notes)
+  private void SpawnNotes(Note[] notes)
+{
+    foreach (Note note in notes)
     {
-        foreach (Note note in notes)
+        float z = (note.Seconds * Speed) + firstNoteZPosition; // Adjust Z with offset
+
+        for (int i = 0; i < SolidNotes.Length; i++)
         {
-            // Calculate Z position relative to song time and speed
-            float z = (float)(note.Seconds * Speed);
-
-            for (int i = 0; i < SolidNotes.Length; i++)
+            if (note.ButtonIndexes[i])
             {
-                if (note.ButtonIndexes[i])
+                Transform noteTmp = Instantiate(SolidNotes[i], transform);
+                noteTmp.localPosition = new Vector3(i - 1.5f, 0, z);
+
+                NoteFactorSpawner spawner = noteTmp.GetComponent<NoteFactorSpawner>();
+                if (spawner != null)
                 {
-                    Transform noteTmp = SpawnPrefab(SolidNotes[i], transform, new Vector3(i - 1.5f, 0, z));
+                    double expectedHitTime = CameraMovement.SongStartTime + (noteTmp.localPosition.z / Speed);
+                    spawner.expectedHitTime = (float)expectedHitTime;
 
-                    // Set the scale for long notes
-                    SetLongNoteScale(noteTmp.GetChild(0), note.DurationSeconds * Speed);
-
-                    // Assign the expected hit time for timing synchronization
-                    var spawner = noteTmp.GetComponent<NoteFactorSpawner>();
-                    if (spawner != null)
-                    {
-                        spawner.expectedHitTime = note.Seconds;
-                    }
+                    Debug.Log($"Assigned expected hit time: {spawner.expectedHitTime} for {noteTmp.name} at position {z}");
+                }
+                else
+                {
+                    Debug.LogError($"NoteFactorSpawner not found on note {noteTmp.name}");
                 }
             }
         }
     }
+}
+
+
+
+
 
     #endregion
 

@@ -54,7 +54,6 @@ public class CameraMovement : MonoBehaviour
         // Update camera position
         transform.position = new Vector3(transform.position.x, transform.position.y, calculatedZPosition);
 
-        Debug.Log($"Calculated Camera Z Position: {calculatedZPosition}");
-        Debug.Log($"Final Applied Camera Position: {transform.position.z}, Song Time: {currentSongTime}");
+      
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections;
+using System;
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
@@ -11,6 +12,7 @@ public class NoteBlockScript : MonoBehaviour
     public enum NoteBlockType { GNoteblocks, DNoteblocks }
     public NoteBlockType BlockType;
     private List<Transform> activeNotes = new List<Transform>(); // Tracks Notes currently in the trigger
+    private double dspNoteHitTime;
     // Tracks notes currently flying to Factor UI
     private Dictionary<Transform, int> factorTreeMap = new Dictionary<Transform, int>();
     private Dictionary<Transform, int> factorTreeCounts = new Dictionary<Transform, int>();
@@ -26,11 +28,14 @@ public class NoteBlockScript : MonoBehaviour
     public GameObject UINoteGreenPrefab, UINoteRedPrefab, UINoteYellowPrefab, UINoteBluePrefab;
     public Camera GMainCamera;
     public Camera DMainCamera;
+    private AudioSource audioSource;
 
     [Header("Timing Thresholds")]
     public float missThreshold = 0.5f;    // Time deviation for a miss
     public float goodThreshold = 0.2f;   // Time deviation for a good hit
     public float perfectThreshold = 0.1f; // Time deviation for a perfect hit
+    public double expectedHitTime; // Expected hit time in seconds, assigned when spawning notes
+
 
     [Header("Feedback UI and Effects")]
     public TextMeshProUGUI feedbackTextUI;
@@ -41,6 +46,11 @@ public class NoteBlockScript : MonoBehaviour
 
     void Start()
     {
+        audioSource = FindObjectOfType<AudioSource>();
+        if (audioSource == null)
+        {
+            Debug.LogError("AudioSource not found in the scene.");
+        }
         // Caching factor tree UI elements
         foreach (var element in factorTreeElements)
         {
@@ -104,6 +114,7 @@ public class NoteBlockScript : MonoBehaviour
             if (!activeNotes.Contains(noteTransform))
             {
                 activeNotes.Add(noteTransform);
+                InteractWithNoteInTrigger(other);
             }
         }
     }
@@ -163,53 +174,72 @@ public class NoteBlockScript : MonoBehaviour
         }
     }
 
+    public void CheckHit()
+    {
+        if (activeNotes.Count == 0) return;
+
+        Transform note = activeNotes[0];
+        NoteFactorSpawner spawner = note.GetComponent<NoteFactorSpawner>();
+
+
+        if (spawner == null) return;
+
+        double currentDspTime = AudioSettings.dspTime;
+        float theExpectedHitTime = spawner.expectedHitTime;
+        double timingDifference = Math.Abs(currentDspTime - theExpectedHitTime);
+
+
+
+        Debug.Log($"Timing Difference: {timingDifference}, Expected Hit: {spawner.expectedHitTime}, the new calculation also, {theExpectedHitTime} DSP Time: {currentDspTime}");
+
+        if (timingDifference <= perfectThreshold)
+        {
+            DisplayFeedback("Perfect");
+        }
+        else if (timingDifference <= goodThreshold)
+        {
+            DisplayFeedback("Good");
+        }
+        else if (timingDifference <= missThreshold)
+        {
+            DisplayFeedback("Miss");
+        }
+        else
+        {
+            Debug.Log("Timing is outside all thresholds.");
+        }
+
+        activeNotes.Remove(note);
+        Destroy(note.gameObject);
+    }
+
 
     // Handle interactions
     void HandleInteractions(bool isActive, GameObject noteBlock)
     {
-        if (isActive)
+        if (isActive && activeNotes.Count > 0)
         {
-            foreach (var note in activeNotes)
+            Transform firstNote = activeNotes[0];
+            NoteFactorSpawner spawner = firstNote.GetComponent<NoteFactorSpawner>();
+
+            if (spawner == null)
             {
-                if (note == null) continue; // Skip null notes
+                Debug.LogWarning("No NoteFactorSpawner found on the note!");
+                return;
+            }
 
-                if (noteBlock.GetComponent<Collider>().bounds.Intersects(note.GetComponent<Collider>().bounds))
-                {
-                    NoteFactorSpawner spawner = note.GetComponent<NoteFactorSpawner>();
-                    if (spawner != null)
-                    {
-                        float timingDifference = Mathf.Abs(spawner.GetTimingDifference());
+            if (noteBlock.GetComponent<Collider>().bounds.Intersects(firstNote.GetComponent<Collider>().bounds))
+            {
+                CheckHit();
 
-                        // Timing feedback
-                        if (timingDifference <= perfectThreshold)
-                        {
-                            DisplayFeedback("Perfect");
-                            // Instantiate(perfectFeedbackPrefab, note.transform.position, Quaternion.identity);
-                        }
-                        else if (timingDifference <= goodThreshold)
-                        {
-                            DisplayFeedback("Good");
-                        }
-                        else if (timingDifference > missThreshold)
-                        {
-                            DisplayFeedback("Miss");
-                        }
-
-                        // Call factor logic
-                        InteractWithNoteInTrigger(note.GetComponent<Collider>());
-
-                        // Destroy the world-space note since it's transitioning to UI
-                        activeNotes.Remove(note);
-                        Destroy(note.gameObject);
-                        break; // Exit loop since the note was processed
-                    }
-                }
             }
         }
     }
 
+
+
     // Define interactions with Notes currently inside the trigger
-    void InteractWithNoteInTrigger(Collider note)
+    public void InteractWithNoteInTrigger(Collider note)
     {
         NoteFactorSpawner spawner = note.GetComponent<NoteFactorSpawner>();
         if (spawner == null)
@@ -432,13 +462,21 @@ public class NoteBlockScript : MonoBehaviour
         }
     }
 
-    void DisplayFeedback(string feedbackText)
+    void DisplayFeedback(string feedbackType)
     {
         if (feedbackTextUI != null)
         {
-            feedbackTextUI.text = feedbackText; // Set the feedback text
-            feedbackTextUI.DOFade(1f, 0.2f) // Fade in
-                .OnComplete(() => feedbackTextUI.DOFade(0f, 0.5f)); // Fade out
+            feedbackTextUI.text = feedbackType; // Set the feedback text
+            feedbackTextUI.DOFade(1f, 0.1f).SetEase(Ease.InCubic) // Fade in
+                .OnComplete(() =>
+                {
+                    feedbackTextUI.transform.DOShakeScale(0.3f, 0.5f, 10, 90, false, ShakeRandomnessMode.Full); // Shake 
+                    feedbackTextUI.DOFade(0f, 0.5f).SetEase(Ease.OutCubic); // Fade out
+                });
+        }
+        else
+        {
+            Debug.LogWarning($"Feedback type '{feedbackType}' triggered, but feedbackTextUI is not assigned.");
         }
     }
 

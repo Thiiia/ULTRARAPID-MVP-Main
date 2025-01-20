@@ -23,7 +23,7 @@ public class NoteFactorSpawner : MonoBehaviour
 
     void Start()
     {
-        spawnTime = Time.time; // Record the time the note is spawned
+        spawnTime = (float)AudioSettings.dspTime; // Use DSP time for audio accuracy
         GenerateFactors(specifiedNumber);
         AssignRandomFactor();
     }
@@ -75,10 +75,11 @@ public class NoteFactorSpawner : MonoBehaviour
         }
     }
 
-    // Calculate the timing difference (for timing feedback like Miss, Good, Perfect)
+    
+    // Calculate timing difference using DSP    
     public float GetTimingDifference()
     {
-        float currentTime = Time.time;
-        return currentTime - (spawnTime + expectedHitTime);
+        float currentDspTime = (float)AudioSettings.dspTime;
+        return currentDspTime - expectedHitTime;
     }
 }

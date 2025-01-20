@@ -4270,7 +4270,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 409303b04241cd846899f0da2e419316, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  refToNoteBlock: {fileID: 1208774786}
+  refToNoteBlock: {fileID: 0}
+  refToInput: {fileID: 0}
+  assignedNoteColor: 0
 --- !u!65 &915714450
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -4676,6 +4678,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   refToNoteBlock: {fileID: 1757408083}
+  refToInput: {fileID: 1842151625}
+  assignedNoteColor: 0
 --- !u!65 &1027368598
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -5212,6 +5216,7 @@ MonoBehaviour:
   missThreshold: 0.8
   goodThreshold: 0.4
   perfectThreshold: 0.25
+  expectedHitTime: 0
   feedbackTextUI: {fileID: 92850857}
   perfectFeedbackPrefab: {fileID: 0}
   factorTreeElements:
@@ -5416,7 +5421,7 @@ MonoBehaviour:
   chartDropdown: {fileID: 1226002618}
   chartPaths:
   - Charts\VibrationFinal.chart
-  - Charts\Papercut.chart
+  - Charts\PapercutGH3.chart
   audioPaths:
   - Songs\VibrationAudio.mp3
   - Songs\PapercutAudio.mp3
@@ -6024,7 +6029,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 409303b04241cd846899f0da2e419316, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  refToNoteBlock: {fileID: 1208774786}
+  refToNoteBlock: {fileID: 0}
+  refToInput: {fileID: 0}
+  assignedNoteColor: 0
 --- !u!65 &1372634450
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -6592,6 +6599,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   refToNoteBlock: {fileID: 1757408083}
+  refToInput: {fileID: 1842151625}
+  assignedNoteColor: 2
 --- !u!65 &1468845768
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -6950,6 +6959,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   refToNoteBlock: {fileID: 1757408083}
+  refToInput: {fileID: 1842151625}
+  assignedNoteColor: 1
 --- !u!65 &1546648471
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -7304,7 +7315,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 409303b04241cd846899f0da2e419316, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  refToNoteBlock: {fileID: 1208774786}
+  refToNoteBlock: {fileID: 0}
+  refToInput: {fileID: 0}
+  assignedNoteColor: 0
 --- !u!65 &1630143349
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -7575,6 +7588,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   refToNoteBlock: {fileID: 1757408083}
+  refToInput: {fileID: 1842151625}
+  assignedNoteColor: 3
 --- !u!65 &1668922556
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -7976,9 +7991,10 @@ MonoBehaviour:
   UINoteBluePrefab: {fileID: 7656571208250133743, guid: 4a3f14a31a69f1f43afa823512ee2bcc, type: 3}
   GMainCamera: {fileID: 425136345}
   DMainCamera: {fileID: 25775765}
-  missThreshold: 0.975
-  goodThreshold: 0.3
-  perfectThreshold: 0.1
+  missThreshold: 1
+  goodThreshold: 0.1
+  perfectThreshold: 0.15
+  expectedHitTime: 0
   feedbackTextUI: {fileID: 92850857}
   perfectFeedbackPrefab: {fileID: 0}
   factorTreeElements:
@@ -8101,7 +8117,7 @@ Transform:
   m_GameObject: {fileID: 1799697122}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 306, y: 275, z: -450}
+  m_LocalPosition: {x: 306, y: 275, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -9077,7 +9093,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 409303b04241cd846899f0da2e419316, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  refToNoteBlock: {fileID: 1208774786}
+  refToNoteBlock: {fileID: 0}
+  refToInput: {fileID: 0}
+  assignedNoteColor: 0
 --- !u!65 &2022322352
 BoxCollider:
   m_ObjectHideFlags: 0

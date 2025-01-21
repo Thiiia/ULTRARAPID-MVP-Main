@@ -144,7 +144,7 @@ public class ChartLoaderTest : MonoBehaviour
 
     public void LoadAndInitializeChart()
     {
-        ResetLoaderState(); // Ensure state is reset
+       
         string chartPath = System.IO.Path.Combine(Application.streamingAssetsPath, _path);
 
         Debug.Log($"Attempting to load chart at: {chartPath}");

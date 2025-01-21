@@ -13,7 +13,7 @@ public class ChildTrigger : MonoBehaviour
     void OnTriggerEnter(Collider other)
     {
 
-        if (other.CompareTag("Note") && IsCorrectInputPressed())
+        if (other.CompareTag("Note"))
         {
 
 
@@ -23,23 +23,14 @@ public class ChildTrigger : MonoBehaviour
 
         }
     }
-     void OnTriggerStay(Collider other)
-    {
-        if (other.CompareTag("Note") && IsCorrectInputPressed() && !noteHit)
-        {
-            
-            refToNoteBlock.CheckHit();
-            noteHit = true;
 
-        }
-    }
 
     void OnTriggerExit(Collider other)
     {
         if (refToNoteBlock != null)
         {
             refToNoteBlock.OnChildTriggerExit(gameObject, other);
-            noteHit = false;
+          
         }
     }
 

@@ -188,26 +188,24 @@ public class NoteBlockScript : MonoBehaviour
 
         if (chartLoader != null)
         {
-            // Calculate midpoint expected hit time based on trigger width
-            double midPointTime = spawner.expectedHitTime - (triggerWidth / 2f / chartLoader.Speed);
-            double timingDifference = Math.Abs(currentDspTime - midPointTime);
-
-            Debug.Log($"Timing Difference: {timingDifference}, Midpoint Expected Hit: {midPointTime}, DSP Time: {currentDspTime}");
+            float timingDifference = Mathf.Abs(spawner.GetTimingDifference());
 
             // Determine the hit type based on timing thresholds
             if (timingDifference <= perfectThreshold)
             {
                 DisplayFeedback("Perfect");
+                InteractWithNoteInTrigger(note.GetComponent<Collider>());
             }
             else if (timingDifference <= (perfectThreshold + goodThreshold) / 2)
             {
                 DisplayFeedback("Good");
+                InteractWithNoteInTrigger(note.GetComponent<Collider>());
             }
             else
             {
                 DisplayFeedback("Miss");
             }
-
+           
             activeNotes.Remove(note);
             Destroy(note.gameObject);
         }
@@ -231,6 +229,7 @@ public class NoteBlockScript : MonoBehaviour
             if (noteBlock.GetComponent<Collider>().bounds.Intersects(firstNote.GetComponent<Collider>().bounds))
             {
                 CheckHit();
+                
 
             }
         }

@@ -91,6 +91,7 @@ public class NoteBlockScript : MonoBehaviour
             originalScaleBlue = RefToNoteblocks[3].transform.localScale;
         }
 
+        /* 
         if (this.gameObject.name == "DNoteblocks")
         {
             defaultDPadLeftColor = RefToNoteblocks[0].GetComponent<SpriteRenderer>().color;
@@ -103,6 +104,7 @@ public class NoteBlockScript : MonoBehaviour
             originalScaleDPadUp = RefToNoteblocks[2].transform.localScale;
             originalScaleDPadDown = RefToNoteblocks[3].transform.localScale;
         }
+        */
     }
 
     public void OnChildTriggerEnter(GameObject child, Collider other)
@@ -158,6 +160,7 @@ public class NoteBlockScript : MonoBehaviour
         }
 
         // Likewise for DNoteblocks
+        /*
         if (this.gameObject.name == "DNoteblocks")
         {
             HandleColourAndAnimation(RefToInputController.DPadLeft > 0, RefToNoteblocks[0], ref dpadLeftTween, new Color(4f / 255f, 170f / 255f, 0f, 1f), defaultDPadLeftColor, originalScaleDPadLeft);
@@ -172,6 +175,7 @@ public class NoteBlockScript : MonoBehaviour
             HandleColourAndAnimation(RefToInputController.DPadRight > 0, RefToNoteblocks[3], ref dpadDownTween, new Color(7f / 255f, 101f / 255f, 234f / 255f, 1f), defaultDPadDownColor, originalScaleDPadDown);
             HandleInteractions(RefToInputController.DPadRight > 0, RefToNoteblocks[3]);
         }
+        */
     }
 
     public void CheckHit()

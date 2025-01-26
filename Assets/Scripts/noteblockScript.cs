@@ -423,10 +423,10 @@ public class NoteBlockScript : MonoBehaviour
     {
         currentTween?.Kill();
         currentTween = DOTween.Sequence()
-            .Append(noteBlock.transform.DOScale(originalScale * 1.3f, 1f).SetEase(Ease.OutElastic)) // Bigger pop effect with elasticity
+            .Append(noteBlock.transform.DOScale(originalScale * 1.8f, 1f).SetEase(Ease.OutElastic)) // Bigger pop effect with elasticity
             .Join(sr.DOColor(targetColor, 0.2f).SetEase(Ease.Linear)) // Slightly longer color transition
             .AppendInterval(2f)  // Hold the effect for a moment
-            .Append(noteBlock.transform.DOScale(originalScale * 1.1f, 1f).SetEase(Ease.InOutQuad)) // Settling effect
+            .Append(noteBlock.transform.DOScale(originalScale * 1.4f, 1f).SetEase(Ease.InOutQuad)) // Settling effect
             .AppendInterval(1f)  // Hold again before the final bounce
             .Append(noteBlock.transform.DOScale(originalScale, 0.3f).SetEase(Ease.OutBounce)); // More bouncy return
 

@@ -425,9 +425,7 @@ public class NoteBlockScript : MonoBehaviour
         currentTween = DOTween.Sequence()
             .Append(noteBlock.transform.DOScale(originalScale * 1.8f, 1f).SetEase(Ease.OutElastic)) // Bigger pop effect with elasticity
             .Join(sr.DOColor(targetColor, 0.2f).SetEase(Ease.Linear)) // Slightly longer color transition
-          
             .Append(noteBlock.transform.DOScale(originalScale * 1.4f, 1f).SetEase(Ease.InOutQuad)) // Settling effect
-            .AppendInterval(1f)  // Hold again before the final bounce
             .Append(noteBlock.transform.DOScale(originalScale, 0.3f).SetEase(Ease.OutBounce)); // More bouncy return
 
         foreach (var childSr in childSpriteRenderers)
@@ -441,7 +439,7 @@ public class NoteBlockScript : MonoBehaviour
         currentTween = DOTween.Sequence()
             .Append(sr.DOColor(defaultColor, 0.2f).SetEase(Ease.Linear))
             .Join(noteBlock.transform.DOScale(originalScale, 0.1f))
-            .AppendInterval(0.3f);  // Hold the default state before resetting
+            .AppendInterval(0.125f);  // Hold the default state before resetting
 
         foreach (var childSr in childSpriteRenderers)
         {

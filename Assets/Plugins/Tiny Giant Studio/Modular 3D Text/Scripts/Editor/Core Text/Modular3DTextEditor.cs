@@ -73,6 +73,11 @@ namespace TinyGiantStudio.Text
         private SerializedProperty meshPostProcess;
         private SerializedProperty useIncreasedVerticiesCountForCombinedMesh;
 
+        private SerializedProperty secondaryUV_hardAngle;
+        private SerializedProperty secondaryUV_angleError;
+        private SerializedProperty secondaryUV_areaError;
+        private SerializedProperty secondaryUV_packMargin;
+
         //Debug -- starts
         private SerializedProperty wordArray;
 
@@ -500,7 +505,42 @@ namespace TinyGiantStudio.Text
                 {
                     EditorGUI.indentLevel = 0;
                     MText_Editor_Methods.ItalicHorizontalField(meshPostProcess, "UV Remapping", "Project UV is the default." + variableName + "meshPostProcess, type enum", FieldSize.normal);
+                  GUILayout.Space(15);
+                    GUILayout.BeginVertical(EditorStyles.helpBox);
+                    
+                    MText_Editor_Methods.ItalicHorizontalField(secondaryUV_hardAngle, "Hard Angle", "This angle (in degrees) or greater between triangles will cause seam to be created.", FieldSize.normal);
+                    MText_Editor_Methods.ItalicHorizontalField(secondaryUV_angleError, "Angle Error", "Maximum allowed angle distortion (0..1).", FieldSize.normal);
+                    MText_Editor_Methods.ItalicHorizontalField(secondaryUV_areaError, "Area Error", "Maximum allowed area distortion (0..1).", FieldSize.normal);
+                    MText_Editor_Methods.ItalicHorizontalField(secondaryUV_packMargin, "Pack Margin", "How much uv-islands will be padded.", FieldSize.normal);
+                   
+                    if (GUILayout.Button("Generate Secondary UV (for lightmapping static mesh)"))
+                    {
+                        if (string.IsNullOrEmpty(myTarget.Text))
+                            Debug.Log("Can't generate secondary UV for empty text");
+                        else if (!myTarget.GetComponent<MeshFilter>())
+                            Debug.LogWarning("No mesh filter found. Please use single mesh");
+                        else if (myTarget.GetComponent<MeshFilter>().sharedMesh == null)
+                            Debug.Log("Can't find mesh to generate secondary UV");
+                        else
+                        {
+                            UnwrapParam param = new UnwrapParam();
+                            UnwrapParam.SetDefaults(out param);
 
+                            param.angleError =myTarget.secondaryUV_angleError;       // Lower values = higher accuracy for angles
+                            param.areaError = myTarget.secondaryUV_areaError;        // Lower values = better area fit
+                            param.hardAngle = myTarget.secondaryUV_hardAngle;        // Hard edges threshold
+                            param.packMargin = myTarget.secondaryUV_packMargin;      // Space between UV islands
+
+
+                            Undo.RecordObject(myTarget.GetComponent<MeshFilter>().sharedMesh, "Generate secondary UV for " + myTarget.name);
+                            Unwrapping.GenerateSecondaryUVSet(myTarget.GetComponent<MeshFilter>().sharedMesh,param);
+                            EditorUtility.SetDirty(myTarget.GetComponent<MeshFilter>());
+                            Debug.Log("GenerateSecondaryUVSet successful");
+                        }
+                    }
+                    GUILayout.EndVertical();
+
+                  GUILayout.Space(15);
                     string verticiesCountTooltip = "Variable name: useIncreasedVerticiesCountForCombinedMesh, type bool \n\nApplies only to combined meshes. \nChanges mesh index format from 16 to 32 when set to true. index format 16 bit takes less memory and bandwidth. With lower capacity, if max verticies count(65536) is reached, the mesh is split into separate objects.\nDoesn't auto change the index format if it is not needed";
 
                     MText_Editor_Methods.ItalicHorizontalField(useIncreasedVerticiesCountForCombinedMesh, "Don't split large combined meshes", verticiesCountTooltip, FieldSize.gigantic);
@@ -1150,6 +1190,11 @@ namespace TinyGiantStudio.Text
 
             meshPostProcess = soTarget.FindProperty("meshPostProcess");
             useIncreasedVerticiesCountForCombinedMesh = soTarget.FindProperty("useIncreasedVerticiesCountForCombinedMesh");
+
+            secondaryUV_hardAngle = soTarget.FindProperty("secondaryUV_hardAngle");
+            secondaryUV_angleError = soTarget.FindProperty("secondaryUV_angleError");
+            secondaryUV_areaError = soTarget.FindProperty("secondaryUV_areaError");
+            secondaryUV_packMargin = soTarget.FindProperty("secondaryUV_packMargin");
         }
 
         private void LoadFoldoutValues()

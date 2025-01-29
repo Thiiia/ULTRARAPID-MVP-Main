@@ -15,7 +15,6 @@ namespace TinyGiantStudio.Text.FontCreation
             newFont.GetMonoSpacingFromAverageCharacterSpacing();
             GameObject fontSet = AssetDatabase.LoadAssetAtPath(prefabPath, typeof(GameObject)) as GameObject;
 
-
 #if UNITY_EDITOR
             {
                 ModelImporter importer = ModelImporter.GetAtPath(prefabPath) as ModelImporter;
@@ -27,7 +26,6 @@ namespace TinyGiantStudio.Text.FontCreation
                 importer.SaveAndReimport();
             }
 #endif
-
 
             newFont.UpdateCharacterList(fontSet);
             for (int i = 0; i < newFont.characters.Count; i++)
@@ -54,17 +52,22 @@ namespace TinyGiantStudio.Text.FontCreation
 
             string scriptableObjectSaveLocation = EditorUtility.SaveFilePanel("Save font location", "", fontName, "asset");
             scriptableObjectSaveLocation = FileUtil.GetProjectRelativePath(scriptableObjectSaveLocation);
+            if (!scriptableObjectSaveLocation.Contains("Assets/"))
+            {
+                Debug.LogWarning("Font export location doesn't contain \"Assets/\".\n" +
+                    "A proper export location example : Assets/Amatic SC Regular.asset \n" +
+                    "And the current location is : " + scriptableObjectSaveLocation +
+                    "Manually adding Assets/ in an attempt to fix it. If the target location is still outside the project's unity folder, it will fail.");
+                scriptableObjectSaveLocation.Insert(0, "Assets/");
+            }
+            Debug.Log("Target Location of font file: " + scriptableObjectSaveLocation);
             AssetDatabase.CreateAsset(newFont, scriptableObjectSaveLocation);
             AssetDatabase.SaveAssets();
-
-
-
         }
 
         private Font GetKerning(CharacterGenerator fontCreator, Font newFont)
         {
             fontCreator.GetKerningInfo(out List<int> lefts, out List<int> rights, out List<short> offsets);
-
 
             for (int i = 0; i < lefts.Count; i++)
             {

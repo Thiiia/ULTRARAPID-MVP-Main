@@ -120,7 +120,7 @@ namespace TinyGiantStudio.Text
 
         void ProcessNewChar(char c)
         {
-            if (c == '\b') // has backspace/delete been pressed?
+            if (c == '\b' || (int)c == 127) // has backspace/delete been pressed? //ASCII 127 is the delete button on apple devices.
             {
                 if (Text.Length != 0)
                 {
@@ -129,7 +129,7 @@ namespace TinyGiantStudio.Text
                     onBackspace.Invoke();
                 }
             }
-            else if (((c == '\n') || (c == '\r')) && enterKeyEndsInput) // enter/return
+            else if (((c == '\n') || (c == '\r')) && enterKeyEndsInput) // enter/return : /r is for apple devices
             {
                 InputComplete();
             }
@@ -434,7 +434,7 @@ namespace TinyGiantStudio.Text
         public void PressStart()
         {
             SelectedVisual();
-            Debug.Log("Press start");
+            //Debug.Log("Press start");
         }
         /// <summary>
         /// Used by UIState event. 

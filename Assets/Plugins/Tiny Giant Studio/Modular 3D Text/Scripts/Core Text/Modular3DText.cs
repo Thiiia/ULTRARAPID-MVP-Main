@@ -322,6 +322,24 @@ namespace TinyGiantStudio.Text
         /// </summary>
         [HideInInspector] public bool hideOverwrittenVariablesFromInspector = true;
 
+        //settings to generate secondary UV via advanced settings
+        /// <summary>
+        /// Editor Only
+        /// </summary>
+        public float secondaryUV_hardAngle = 88.0f;
+        /// <summary>
+        /// Editor Only
+        /// </summary>
+        public float secondaryUV_angleError = 0.08f;
+        /// <summary>
+        /// Editor Only
+        /// </summary>
+        public float secondaryUV_areaError = 0.15f;
+        /// <summary>
+        /// Editor Only
+        /// </summary>
+        public float secondaryUV_packMargin = 0.005f;
+
 #endif
 
         #region Logging

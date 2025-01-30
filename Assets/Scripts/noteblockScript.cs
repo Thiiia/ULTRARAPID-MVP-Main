@@ -275,7 +275,7 @@ public class NoteBlockScript : MonoBehaviour
 
                 // Increment factor tree count
                 factorTreeCounts[pair.Key]++;
-                if (factorTreeCounts[pair.Key] >= 7)
+                if (factorTreeCounts[pair.Key] >= 3)
                 {
                     TriggerNodeFullFeedback(pair.Key);
                     TextMeshProUGUI textComponent = pair.Key.GetComponent<TextMeshProUGUI>();

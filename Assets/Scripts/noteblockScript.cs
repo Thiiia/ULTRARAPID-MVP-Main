@@ -417,7 +417,7 @@ public class NoteBlockScript : MonoBehaviour
    void HandleColourAndAnimation(bool isActive, GameObject noteBlock, ref Tween currentTween, Color targetColor, Color defaultColor, Vector3 originalScale)
 {
     SpriteRenderer sr = noteBlock.GetComponent<SpriteRenderer>();
-    SpriteRenderer[] childSpriteRenderers = noteBlock.GetComponentsInChildren<SpriteRenderer>();
+    
 
     if (isActive && sr.color != targetColor)
     {
@@ -427,24 +427,13 @@ public class NoteBlockScript : MonoBehaviour
             .Join(sr.DOColor(targetColor, 0.2f).SetEase(Ease.Linear)) // Slightly longer color transition
             .Append(noteBlock.transform.DOScale(originalScale * 1.4f, 1f).SetEase(Ease.InOutQuad)) // Settling effect
             .Append(noteBlock.transform.DOScale(originalScale, 0.3f).SetEase(Ease.OutBounce)); // More bouncy return
-
-        foreach (var childSr in childSpriteRenderers)
-        {
-            childSr.DOColor(targetColor, 0.4f).SetEase(Ease.Linear);
-        }
     }
     else if (!isActive && sr.color != defaultColor)
     {
         currentTween?.Kill();
         currentTween = DOTween.Sequence()
             .Append(sr.DOColor(defaultColor, 0.2f).SetEase(Ease.Linear))
-            .Join(noteBlock.transform.DOScale(originalScale, 0.1f))
-            .AppendInterval(0.125f);  // Hold the default state before resetting
-
-        foreach (var childSr in childSpriteRenderers)
-        {
-            childSr.DOColor(defaultColor, 0.2f).SetEase(Ease.Linear);
-        }
+            .Join(noteBlock.transform.DOScale(originalScale, 0.1f));
     }
 }
     void UpdateFactorTreeNode(Transform node)
@@ -471,7 +460,7 @@ public class NoteBlockScript : MonoBehaviour
             RectTransform indicatorRect = glowEffect.GetComponent<RectTransform>();
             if (indicatorRect != null)
             {
-                indicatorRect.anchoredPosition = new Vector2(0, 65); // Position above the node
+                indicatorRect.anchoredPosition = new Vector2(0, 66); // Position above the node
             }
 
             // Play glow animation

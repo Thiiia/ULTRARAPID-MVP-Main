@@ -245,7 +245,7 @@ GameObject:
   - component: {fileID: 50191088}
   - component: {fileID: 50191089}
   m_Layer: 0
-  m_Name: String (1)
+  m_Name: HBGs Green
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -264,7 +264,7 @@ Transform:
   m_LocalScale: {x: -234.17844, y: 1.8146356, z: 1.1945}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 535378777}
+  m_Father: {fileID: 1848811626}
   m_LocalEulerAnglesHint: {x: -90, y: 90, z: 0}
 --- !u!212 &50191089
 SpriteRenderer:
@@ -1755,7 +1755,7 @@ GameObject:
   - component: {fileID: 283125847}
   - component: {fileID: 283125848}
   m_Layer: 0
-  m_Name: String (4)
+  m_Name: HBGs Blue
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1770,11 +1770,11 @@ Transform:
   m_GameObject: {fileID: 283125846}
   serializedVersion: 2
   m_LocalRotation: {x: -0.5, y: 0.5, z: 0.5, w: 0.5}
-  m_LocalPosition: {x: 1.567, y: 0, z: 0.3}
+  m_LocalPosition: {x: 1.5669999, y: 0, z: 0.3}
   m_LocalScale: {x: -234.17844, y: 1.7985401, z: 1.1945}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 535378777}
+  m_Father: {fileID: 1848811626}
   m_LocalEulerAnglesHint: {x: -90, y: 90, z: 0}
 --- !u!212 &283125848
 SpriteRenderer:
@@ -2902,10 +2902,7 @@ Transform:
   - {fileID: 77091827}
   - {fileID: 241690175}
   - {fileID: 1502514079}
-  - {fileID: 50191088}
-  - {fileID: 283125847}
-  - {fileID: 2145962178}
-  - {fileID: 1416923774}
+  - {fileID: 1848811626}
   - {fileID: 50740725}
   m_Father: {fileID: 1799697123}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -6226,7 +6223,7 @@ GameObject:
   - component: {fileID: 1416923774}
   - component: {fileID: 1416923775}
   m_Layer: 0
-  m_Name: String (3)
+  m_Name: HBGs Yellow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6245,7 +6242,7 @@ Transform:
   m_LocalScale: {x: -234.17844, y: 1.568516, z: 1.1945}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 535378777}
+  m_Father: {fileID: 1848811626}
   m_LocalEulerAnglesHint: {x: -90, y: 90, z: 0}
 --- !u!212 &1416923775
 SpriteRenderer:
@@ -7959,6 +7956,41 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1848811625
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1848811626}
+  m_Layer: 0
+  m_Name: HighwayBGs
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1848811626
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1848811625}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 50191088}
+  - {fileID: 2145962178}
+  - {fileID: 1416923774}
+  - {fileID: 283125847}
+  m_Father: {fileID: 535378777}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1872330461
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8475,7 +8507,7 @@ GameObject:
   - component: {fileID: 2145962178}
   - component: {fileID: 2145962179}
   m_Layer: 0
-  m_Name: String (2)
+  m_Name: HBGs Red
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8494,7 +8526,7 @@ Transform:
   m_LocalScale: {x: -234.17844, y: 1.568516, z: 1.1945}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 535378777}
+  m_Father: {fileID: 1848811626}
   m_LocalEulerAnglesHint: {x: -90, y: 90, z: 0}
 --- !u!212 &2145962179
 SpriteRenderer:

@@ -1,33 +1,47 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
 
 public class Slidescript : MonoBehaviour
 {
-    [SerializeField] private Image _fadeSlide; // The fade effect UI image
-    [SerializeField] private Transform _slideParent; // Parent object for dynamically created slides
-    [SerializeField] private GameObject _slidePrefab; // Prefab for slides (must have an Image component)
+    [SerializeField] private Image _fadeSlide;
+    [SerializeField] private Transform _slideParent;
+    [SerializeField] private GameObject _slidePrefab;
+    private Button skipButton;
 
     private List<GameObject> _slides = new List<GameObject>();
     private float _fadeDuration = 0.75f;
     private float _switchDuration = 1.6f;
     private int _currentSlide = -1;
 
+    private string nextSceneName = "MainGameplayScene"; 
+
     private IEnumerator Start()
     {
-        LoadSlidesFromResources(); // Load images from Resources folder
+        LoadSlidesFromResources();
 
         if (_slides.Count == 0) yield break;
 
         _fadeSlide.color = Color.black;
-        
-        while (true)
+
+        //click to skip the slideshow
+        if (skipButton != null)
         {
-            _currentSlide = (_currentSlide + 1) % _slides.Count;
+            skipButton.onClick.AddListener(SkipToNextScene);
+        }
+
+        while (_currentSlide < _slides.Count - 1) // Loop until last slide
+        {
+            _currentSlide++;
             StartCoroutine(SlideTransition());
             yield return new WaitForSeconds(_switchDuration);
         }
+
+        // Load the next scene after the last slide
+        yield return new WaitForSeconds(0.1f); // Short delay
+        LoadNextScene();
     }
 
     private void LoadSlidesFromResources()
@@ -38,7 +52,7 @@ public class Slidescript : MonoBehaviour
         {
             GameObject newSlide = Instantiate(_slidePrefab, _slideParent);
             newSlide.GetComponent<Image>().sprite = img;
-            newSlide.SetActive(false); // Start as inactive
+            newSlide.SetActive(false);
             _slides.Add(newSlide);
         }
     }
@@ -66,5 +80,16 @@ public class Slidescript : MonoBehaviour
             _fadeSlide.color = Color.Lerp(startColor, targetColor, elapsedTime / _fadeDuration);
             yield return null;
         }
+    }
+
+    private void LoadNextScene()
+    {
+        SceneManager.LoadScene(nextSceneName);
+    }
+
+    public void SkipToNextScene()
+    {
+        StopAllCoroutines(); // Stop slideshow
+        LoadNextScene();
     }
 }

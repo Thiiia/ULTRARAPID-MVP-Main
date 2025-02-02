@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
+using UnityEngine;
 using ChartLoader.NET.Utils;
 
 using ChartLoader.NET.Framework;
@@ -35,7 +35,7 @@ namespace ChartLoader.NET.Utils
         /// </summary>
         public Chart Chart
         {
-            get 
+            get
             {
                 return _chart;
             }
@@ -88,15 +88,22 @@ namespace ChartLoader.NET.Utils
         /// <return>Chart</return>
         public Chart ParseChartText(string chartText)
         {
-            string[] stringLines = chartText.Split(
-                new string[] { Environment.NewLine }, 
-                StringSplitOptions.None
-                );
+            if (string.IsNullOrEmpty(chartText))
+            {
+                Debug.LogError("❌ ChartReader received EMPTY chart data!");
+                return null;
+            }
+
+            // ✅ Normalize line endings for WebGL
+            chartText = chartText.Replace("\r\n", "\n").Replace("\r", "\n");
+
+            Debug.Log($"📜 Processing {chartText.Length} characters from chart data.");
+
+            string[] stringLines = chartText.Split(new string[] { "\n" }, StringSplitOptions.None);
 
             ParseChartText(stringLines);
             return Chart;
         }
-
         /// <summary>
         /// Parses the current string array.
         /// </summary>
@@ -134,7 +141,7 @@ namespace ChartLoader.NET.Utils
         /// <param name="line">The line to process.</param>
         private void ProcessLine(string line)
         {
-            switch(line)
+            switch (line)
             {
                 case "[Song]":
                     _chart.ProcessEnumerator(_fileScanner);
@@ -212,7 +219,7 @@ namespace ChartLoader.NET.Utils
             container.Add("Notes", playerNotes);
             container.Add("SP", playerSP);
 
-            Chart.Notes.Add(NoteType, 
+            Chart.Notes.Add(NoteType,
                 container);
 
         }

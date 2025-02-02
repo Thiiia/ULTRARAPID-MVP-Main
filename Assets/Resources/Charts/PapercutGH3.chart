@@ -1,6 +1,14 @@
 ﻿[Song]
 {
-
+  Offset = 0
+  Resolution = 480
+  Player2 = bass
+  Difficulty = 0
+  PreviewStart = 0
+  PreviewEnd = 0
+  Genre = "rock"
+  MediaType = "cd"
+  GuitarStream = "D:\Daddy\Downloads\Linkin Park - Papercut-20241126T142422Z-001\Linkin Park - Papercut\guitar.ogg"
 }
 [SyncTrack]
 {

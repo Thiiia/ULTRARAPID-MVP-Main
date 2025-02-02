@@ -254,7 +254,7 @@ public class NoteBlockScript : MonoBehaviour
         foreach (var pair in factorTreeMap)
         {
             // Match the factor value and ensure the node isn't already full
-            if (pair.Value == spawner.assignedFactor && factorTreeCounts[pair.Key] < 7)
+            if (pair.Value == spawner.assignedFactor && factorTreeCounts[pair.Key] < 5)
             {
                 // Dynamically find the correct camera based on BlockType
                 Camera activeCamera = (BlockType == NoteBlockType.GNoteblocks)
@@ -275,7 +275,7 @@ public class NoteBlockScript : MonoBehaviour
 
                 // Increment factor tree count
                 factorTreeCounts[pair.Key]++;
-                if (factorTreeCounts[pair.Key] >= 3)
+                if (factorTreeCounts[pair.Key] >= 5)
                 {
                     TriggerNodeFullFeedback(pair.Key);
                     TextMeshProUGUI textComponent = pair.Key.GetComponent<TextMeshProUGUI>();
@@ -423,10 +423,10 @@ public class NoteBlockScript : MonoBehaviour
     {
         currentTween?.Kill();
         currentTween = DOTween.Sequence()
-            .Append(noteBlock.transform.DOScale(originalScale * 1.8f, 1f).SetEase(Ease.OutElastic)) // Bigger pop effect with elasticity
+            .Append(noteBlock.transform.DOScale(originalScale * 1.4f, .5f).SetEase(Ease.OutElastic)) // Bigger pop effect with elasticity
             .Join(sr.DOColor(targetColor, 0.2f).SetEase(Ease.Linear)) // Slightly longer color transition
-            .Append(noteBlock.transform.DOScale(originalScale * 1.4f, 1f).SetEase(Ease.InOutQuad)) // Settling effect
-            .Append(noteBlock.transform.DOScale(originalScale, 0.3f).SetEase(Ease.OutBounce)); // More bouncy return
+            .Append(noteBlock.transform.DOScale(originalScale * 1.2f, .5f).SetEase(Ease.InOutQuad)) // Settling effect
+            .Append(noteBlock.transform.DOScale(originalScale, 0.2f).SetEase(Ease.OutBounce)); // More bouncy return
     }
     else if (!isActive && sr.color != defaultColor)
     {

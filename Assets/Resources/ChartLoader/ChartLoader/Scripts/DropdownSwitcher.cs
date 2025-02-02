@@ -95,7 +95,7 @@ public class DropdownSwitcher : MonoBehaviour
 
                 if (Application.platform == RuntimePlatform.WebGLPlayer)
                 {
-                    StartCoroutine(chartLoader.LoadChartWebGL(chartFullPath)); // WebGL chart loading
+                   // StartCoroutine(chartLoader.LoadChartWebGL(chartFullPath)); // WebGL chart loading
                 }
                 else
                 {
@@ -172,7 +172,7 @@ public class DropdownSwitcher : MonoBehaviour
                 chartLoader.Path = chartPaths[0];
                 if (Application.platform == RuntimePlatform.WebGLPlayer)
                 {
-                    yield return chartLoader.LoadChartWebGL(chartFullPath);
+                    // yield return chartLoader.LoadChartWebGL(chartFullPath);
                 }
                 else
                 {

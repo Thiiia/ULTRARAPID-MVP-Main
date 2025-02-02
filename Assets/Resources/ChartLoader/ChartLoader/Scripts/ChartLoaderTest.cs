@@ -117,7 +117,7 @@ public class ChartLoaderTest : MonoBehaviour
     {
         if (Music.clip != null)
         {
-            songLength = Music.clip.length; // Get the length of the AudioClip
+            songLength = Music.clip.length;
             Debug.Log($"Song Length: {songLength} seconds");
         }
         else
@@ -125,14 +125,12 @@ public class ChartLoaderTest : MonoBehaviour
             Debug.LogError("Music clip is not assigned to the AudioSource.");
         }
 
-        double dspTime = AudioSettings.dspTime; // Get DSP time
-        Music.PlayScheduled(dspTime); // Start the music at DSP time
+        double dspTime = AudioSettings.dspTime;
+        Music.PlayScheduled(dspTime);
 
-
-        // Find the CameraMovement component and initialize it
         if (CameraMovement != null)
         {
-            CameraMovement.Initialize(dspTime, songLength); // Pass songStartTime and songLength
+            CameraMovement.Initialize(dspTime, songLength);
         }
         else
         {
@@ -142,9 +140,11 @@ public class ChartLoaderTest : MonoBehaviour
         LoadAndInitializeChart();
     }
 
+
     public void LoadAndInitializeChart()
     {
-       
+        _isChartInitialized = false;
+
         string chartPath = System.IO.Path.Combine(Application.streamingAssetsPath, _path);
 
         Debug.Log($"Attempting to load chart at: {chartPath}");
@@ -232,39 +232,40 @@ public class ChartLoaderTest : MonoBehaviour
         }
     }
 
-    public IEnumerator LoadChartWebGL(string chartPath)
+   public IEnumerator LoadChartWebGL(string chartPath)
+{
+    Debug.Log($"🌍 WebGL Loading Chart from: {chartPath}");
+
+    using (UnityWebRequest uwr = UnityWebRequest.Get(chartPath))
     {
-        Debug.Log($"Attempting to load chart from WebGL path: {chartPath}");
-        Chart = null; // Reset chart object before loading
+        yield return uwr.SendWebRequest();
 
-        using (UnityWebRequest uwr = UnityWebRequest.Get(chartPath))
+        if (uwr.result == UnityWebRequest.Result.Success)
         {
-            yield return uwr.SendWebRequest();
+            string chartData = uwr.downloadHandler.text;
+            Debug.Log($"✅ WebGL Loaded Chart. Size: {chartData.Length} characters.");
 
-            if (uwr.result == UnityWebRequest.Result.Success)
+            yield return new WaitForSeconds(0.1f); // ✅ Ensure full file is processed
+
+            ChartReader chartReader = new ChartReader();
+            Chart = chartReader.ParseChartText(chartData);
+
+            if (Chart != null)
             {
-                Debug.Log($"Chart successfully loaded from: {chartPath}");
-                string chartData = uwr.downloadHandler.text;
-
-                ChartReader chartReader = new ChartReader();
-                Chart = chartReader.ParseChartText(chartData); // Use raw chart data
-
-                if (Chart != null)
-                {
-                    Debug.Log($"Chart initialized:");
-                    InitializeChartContent();
-                }
-                else
-                {
-                    Debug.LogError("Failed to parse chart data.");
-                }
+                Debug.Log($"🎵 Chart successfully initialized! Sections: {Chart.Notes.Keys.Count}");
+                InitializeChartContent();
             }
             else
             {
-                Debug.LogError($"Failed to load chart from WebGL path: {chartPath}, Error: {uwr.error}");
+                Debug.LogError("❌ WebGL failed to parse chart.");
             }
         }
+        else
+        {
+            Debug.LogError($"❌ WebGL failed to load chart. Error: {uwr.error}");
+        }
     }
+}
 
     private bool _isChartInitialized = false;
 
@@ -279,6 +280,14 @@ public class ChartLoaderTest : MonoBehaviour
         _isChartInitialized = true;
 
         string currentDifficulty = RetrieveDifficulty();
+        // ✅ Log the number of notes in the parsed chart before trying to spawn
+        Note[] notes = Chart.GetNotes(currentDifficulty);
+        Debug.Log($"🧐 WebGL Parsed {notes.Length} notes for difficulty: {currentDifficulty}");
+
+        if (notes.Length == 0)
+        {
+            Debug.LogError("🚨 Chart loaded, but NO NOTES found! Parsing issue?");
+        }
 
         // Spawn Notes
         SpawnNotes(Chart.GetNotes(currentDifficulty));
@@ -286,7 +295,7 @@ public class ChartLoaderTest : MonoBehaviour
         SpawnSynchTracks(Chart.SynchTracks);
 
         // Adjust Camera Position Based on Notes
-        GameObject notesParent = GameObject.Find("Expert Guitar"); // Notes Container
+        GameObject notesParent = GameObject.FindWithTag("Note Container"); // Notes Container
         if (notesParent != null && notesParent.transform.childCount > 0)
         {
             // Find the first note's Z position
@@ -313,6 +322,7 @@ public class ChartLoaderTest : MonoBehaviour
         else
         {
             Debug.LogWarning("Notes parent object or notes are missing.");
+        
         }
 
         // Start the Song
@@ -374,35 +384,35 @@ public class ChartLoaderTest : MonoBehaviour
         }
     }
 
-  private void SpawnNotes(Note[] notes)
-{
-    foreach (Note note in notes)
+    private void SpawnNotes(Note[] notes)
     {
-        float z = (note.Seconds * Speed) + firstNoteZPosition; // Adjust Z with offset
-
-        for (int i = 0; i < SolidNotes.Length; i++)
+        foreach (Note note in notes)
         {
-            if (note.ButtonIndexes[i])
+            float z = (note.Seconds * Speed) + firstNoteZPosition; // Adjust Z with offset
+
+            for (int i = 0; i < SolidNotes.Length; i++)
             {
-                Transform noteTmp = Instantiate(SolidNotes[i], transform);
-                noteTmp.localPosition = new Vector3(i - 1.5f, 0, z);
-
-                NoteFactorSpawner spawner = noteTmp.GetComponent<NoteFactorSpawner>();
-                if (spawner != null)
+                if (note.ButtonIndexes[i])
                 {
-                    double expectedHitTime = CameraMovement.SongStartTime + (noteTmp.localPosition.z / Speed);
-                    spawner.expectedHitTime = (float)expectedHitTime;
+                    Transform noteTmp = Instantiate(SolidNotes[i], transform);
+                    noteTmp.localPosition = new Vector3(i - 1.5f, 0, z);
 
-                    Debug.Log($"Assigned expected hit time: {spawner.expectedHitTime} for {noteTmp.name} at position {z}");
-                }
-                else
-                {
-                    Debug.LogError($"NoteFactorSpawner not found on note {noteTmp.name}");
+                    NoteFactorSpawner spawner = noteTmp.GetComponent<NoteFactorSpawner>();
+                    if (spawner != null)
+                    {
+                        double expectedHitTime = CameraMovement.SongStartTime + (noteTmp.localPosition.z / Speed);
+                        spawner.expectedHitTime = (float)expectedHitTime;
+
+                        Debug.Log($"Assigned expected hit time: {spawner.expectedHitTime} for {noteTmp.name} at position {z}");
+                    }
+                    else
+                    {
+                        Debug.LogError($"NoteFactorSpawner not found on note {noteTmp.name}");
+                    }
                 }
             }
         }
     }
-}
 
 
 

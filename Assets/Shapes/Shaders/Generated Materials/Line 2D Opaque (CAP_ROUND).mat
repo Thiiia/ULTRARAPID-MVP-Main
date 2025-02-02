@@ -35,6 +35,6 @@ Material:
     - _StencilWriteMask: 255
     - _ZOffsetFactor: 0
     - _ZOffsetUnits: 0
-    - _ZTest: 4
+    - _ZTest: 2
     m_Colors: []
   m_BuildTextureStacks: []

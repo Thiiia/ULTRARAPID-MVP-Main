@@ -15,7 +15,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4
   m_IsActive: 1
 --- !u!4 &4069565436819348
 Transform:
@@ -98,7 +98,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4
   m_IsActive: 1
 --- !u!4 &4641819623506930
 Transform:
@@ -134,7 +134,7 @@ GameObject:
   m_TagString: Note
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4
   m_IsActive: 1
 --- !u!4 &4400627473677722
 Transform:
@@ -146,7 +146,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0.38268343, y: 0, z: 0, w: 0.92387956}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.325, y: 0.325, z: 0.325}
+  m_LocalScale: {x: 0.3375, y: 0.3375, z: 0.3375}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 2941174540231947046}
@@ -194,7 +194,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: -1
+  m_SortingOrder: 1
   m_Sprite: {fileID: 21300000, guid: b4d42377de54c0d4f8a7556c54ad9bd1, type: 3}
   m_Color: {r: 0.36470604, g: 1, b: 0, a: 1}
   m_FlipX: 0
@@ -288,7 +288,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4
   m_IsActive: 1
 --- !u!224 &3299435419423194814
 RectTransform:
@@ -329,7 +329,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -4257348395835976601, guid: 71a3f1973739ddc41a024a149c36fd82, type: 2}
+  - {fileID: -3708386491464788524, guid: 9a59eac482bcd04418ac78e8a93bcb8a, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -373,8 +373,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 71a3f1973739ddc41a024a149c36fd82, type: 2}
-  m_sharedMaterial: {fileID: -4257348395835976601, guid: 71a3f1973739ddc41a024a149c36fd82, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9a59eac482bcd04418ac78e8a93bcb8a, type: 2}
+  m_sharedMaterial: {fileID: -3708386491464788524, guid: 9a59eac482bcd04418ac78e8a93bcb8a, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -458,7 +458,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4
   m_IsActive: 1
 --- !u!4 &2941174540231947046
 Transform:

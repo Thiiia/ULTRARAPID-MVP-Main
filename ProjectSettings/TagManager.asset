@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Note
   - Cameras
+  - Note Container
   layers:
   - Default
   - TransparentFX

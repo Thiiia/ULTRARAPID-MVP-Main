@@ -5,7 +5,7 @@ public class StartMenu : MonoBehaviour
 {
     public void PlayGame()
     {
-        SceneManager.LoadScene("MainGameplayScene");
+        SceneManager.LoadScene("Slideshow");
     }
 
     public void LoadTestScene()

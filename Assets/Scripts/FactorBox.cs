@@ -1,38 +1,51 @@
 using UnityEngine;
 using Shapes;
+using DG.Tweening;
+using TMPro;
 
 public class FactorBox : MonoBehaviour
 {
-    public bool isRevealed = false;  // Tracks if the box is revealed
-    public int factorValue;         // The factor this box represents
-    public Transform parentBox;     // The parent box in the factor tree
+    public int Value; // The number inside the factor box
+    public TextMeshProUGUI textComponent; // Reference to text inside the box
+    public Rectangle boxShape; // Reference to Shapes Rectangle
+    public Disc glowEffect; // Reference to glow effect for primes
+    public Color defaultColor = Color.white;
+    public Color primeColor = Color.yellow;
+    public Color filledColor = Color.green;
+    public FactorTreeUI treeManager;
 
-    private void OnRenderObject()
+    private bool isFilled = false;
+
+   public void Initialize(int value, bool isPrime, FactorTreeUI manager)
+{
+    Value = value;
+    textComponent.text = value.ToString();
+    treeManager = manager; // Store reference to tree system
+
+    // Set initial color
+    boxShape.Color = defaultColor;
+
+    // If it's a prime number, add glow effect
+    glowEffect.enabled = isPrime;
+    if (isPrime)
     {
-        if (parentBox != null)
-        {
-            using (Draw.Command(Camera.main))
-            {
-                Draw.LineGeometry = LineGeometry.Volumetric3D;
-                Draw.ThicknessSpace = ThicknessSpace.Pixels;
-                Draw.Thickness = 5f;
-                Draw.Color = Color.white;
-
-                // Draw a line from this box to the parent
-                Draw.Line(transform.position, parentBox.position);
-            }
-        }
+        glowEffect.Color = primeColor;
+        glowEffect.Radius = 0.25f;
     }
 
-    public void Reveal()
-    {
-        isRevealed = true;
-        // Update visual (e.g., change color, scale, or add text)
-        GetComponent<Renderer>().material.color = Color.green; // Example visual change
-    }
+    // Start hidden and animate in
+    transform.localScale = Vector3.zero;
+    transform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBack);
+}
+   public void FillBox()
+{
+    if (isFilled) return;
+    isFilled = true;
 
-    public void AddToStack()
-    {
-        // Logic for adding to the stack (e.g., progress bar or count)
-    }
+    // Animate color transition manually
+    DOTween.To(() => boxShape.Color, x => boxShape.Color = x, filledColor, 0.3f);
+
+    // Scale effect for visual feedback
+    transform.DOScale(Vector3.one * 1.1f, 0.2f).SetLoops(2, LoopType.Yoyo);
+}
 }

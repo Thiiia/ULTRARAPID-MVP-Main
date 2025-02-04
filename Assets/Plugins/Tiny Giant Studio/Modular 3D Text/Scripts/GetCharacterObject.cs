@@ -493,7 +493,8 @@ namespace TinyGiantStudio.Text
         {
             if (c == '\t')
                 return true;
-            if (c == '\n')
+            //if (c == '\n')
+            if (c == '\n' || c=='\r') //r is for apple devices. Requires further testing
                 return true;
             if (char.IsWhiteSpace(c))
                 return true;
@@ -504,7 +505,7 @@ namespace TinyGiantStudio.Text
         {
             MeshLayout layoutElement = new MeshLayout();
 
-            if (c == '\n')
+            if (c == '\n' || c == '\r')//r is for apple devices. Requires further testing
             {
                 layoutElement.lineBreak = true;
             }
@@ -524,7 +525,8 @@ namespace TinyGiantStudio.Text
 
         private static GameObject ProcessSpecialCharacter(char c, Font font, Modular3DText text, LayoutElement layoutElement, GameObject obj)
         {
-            if (c == '\n')
+            //if (c == '\n')
+            if (c == '\n' || c == '\r')//r is for apple devices. Requires further testing
             {
                 obj.name = "New Line";
                 layoutElement.lineBreak = true;

@@ -48,7 +48,7 @@ public class ChartLoaderTest : MonoBehaviour
     public string Path
     {
         get { return _path; }
-        set { _path = value; }
+        set { _path = value; Debug.Log($"ChartLoaderTest Path set to: {_path}"); }
     }
     #endregion
 
@@ -61,6 +61,7 @@ public class ChartLoaderTest : MonoBehaviour
         get { return _solidNotes; }
         set { _solidNotes = value; }
     }
+    private float firstNoteZPosition;
 
     [TabGroup("Prefab Settings")]
     [SerializeField, Tooltip("Prefab for star power.")]
@@ -99,6 +100,7 @@ public class ChartLoaderTest : MonoBehaviour
         get { return _music; }
         set { _music = value; }
     }
+    public float songLength; // Duration of the song in seconds
 
     [TabGroup("Audio & Camera")]
     [SerializeField, Tooltip("Camera movement aggregation.")]
@@ -111,14 +113,41 @@ public class ChartLoaderTest : MonoBehaviour
     #endregion
 
     #region Start and Initialization
-    void Start()
+    private void Start()
     {
+        if (Music.clip != null)
+        {
+            songLength = Music.clip.length;
+            Debug.Log($"Song Length: {songLength} seconds");
+        }
+        else
+        {
+            Debug.LogError("Music clip is not assigned to the AudioSource.");
+        }
+
+        double dspTime = AudioSettings.dspTime;
+        Music.PlayScheduled(dspTime);
+
+        if (CameraMovement != null)
+        {
+            CameraMovement.Initialize(dspTime, songLength);
+        }
+        else
+        {
+            Debug.LogError("CameraMovement script is not assigned or found.");
+        }
+
         LoadAndInitializeChart();
     }
-    private void LoadAndInitializeChart()
+
+
+    public void LoadAndInitializeChart()
     {
-        ClearExistingNotes(); // Clear any residual notes before loading
+        _isChartInitialized = false;
+
         string chartPath = System.IO.Path.Combine(Application.streamingAssetsPath, _path);
+
+        Debug.Log($"Attempting to load chart at: {chartPath}");
 
         if (Application.platform == RuntimePlatform.WebGLPlayer)
         {
@@ -138,23 +167,51 @@ public class ChartLoaderTest : MonoBehaviour
     {
         Debug.Log("Reloading chart...");
 
-        ClearExistingNotes(); // Clear old notes
-        Chart = null;         // Reset chart object
+        // Clear existing notes and reset chart state
+        ClearExistingNotes();
+        Chart = null; // Reset chart object
         Debug.Log("Chart and notes cleared.");
 
+        // Get the chart path
         string chartPath = System.IO.Path.Combine(Application.streamingAssetsPath, _path);
 
         if (Application.platform == RuntimePlatform.WebGLPlayer)
         {
-            StartCoroutine(LoadChartWebGL(chartPath));
+            StartCoroutine(LoadChartWebGL(chartPath)); // Handle WebGL chart loading
         }
         else if (File.Exists(chartPath))
         {
-            LoadChartFromPath(chartPath);
+            LoadChartFromPath(chartPath); // Handle local chart loading
         }
         else
         {
             Debug.LogError($"Chart file not found: {chartPath}");
+            return;
+        }
+
+        // Recalculate DSP time and start the music for the new chart
+        if (Music.clip != null)
+        {
+            double dspTime = AudioSettings.dspTime; // Get current DSP time
+            Music.Stop(); // Stop any currently playing music
+            Music.PlayScheduled(dspTime); // Schedule the new song to play
+
+            Debug.Log($"New song scheduled to play at DSP time: {dspTime}");
+
+            // Reinitialize camera and other components with new song timing
+            CameraMovement cameraMovement = GameObject.Find("Guitar Camera").GetComponent<CameraMovement>();
+            if (cameraMovement != null)
+            {
+                cameraMovement.Initialize(dspTime, Music.clip.length);
+            }
+            else
+            {
+                Debug.LogWarning("CameraMovement script not found on main camera.");
+            }
+        }
+        else
+        {
+            Debug.LogError("Music clip is null. Ensure the correct audio file is assigned.");
         }
     }
 
@@ -175,49 +232,104 @@ public class ChartLoaderTest : MonoBehaviour
         }
     }
 
-    public IEnumerator LoadChartWebGL(string chartPath)
+   public IEnumerator LoadChartWebGL(string chartPath)
+{
+    Debug.Log($"🌍 WebGL Loading Chart from: {chartPath}");
+
+    using (UnityWebRequest uwr = UnityWebRequest.Get(chartPath))
     {
-        Debug.Log($"Attempting to load chart from WebGL path: {chartPath}");
-        Chart = null; // Reset chart object before loading
+        yield return uwr.SendWebRequest();
 
-        using (UnityWebRequest uwr = UnityWebRequest.Get(chartPath))
+        if (uwr.result == UnityWebRequest.Result.Success)
         {
-            yield return uwr.SendWebRequest();
+            string chartData = uwr.downloadHandler.text;
+            Debug.Log($"✅ WebGL Loaded Chart. Size: {chartData.Length} characters.");
 
-            if (uwr.result == UnityWebRequest.Result.Success)
+            yield return new WaitForSeconds(0.1f); // ✅ Ensure full file is processed
+
+            ChartReader chartReader = new ChartReader();
+            Chart = chartReader.ParseChartText(chartData);
+
+            if (Chart != null)
             {
-                Debug.Log($"Chart successfully loaded from: {chartPath}");
-                string chartData = uwr.downloadHandler.text;
-
-                ChartReader chartReader = new ChartReader();
-                Chart = chartReader.ParseChartText(chartData); // Use raw chart data
-
-                if (Chart != null)
-                {
-                    Debug.Log($"Chart initialized:");
-                    InitializeChartContent();
-                }
-                else
-                {
-                    Debug.LogError("Failed to parse chart data.");
-                }
+                Debug.Log($"🎵 Chart successfully initialized! Sections: {Chart.Notes.Keys.Count}");
+                InitializeChartContent();
             }
             else
             {
-                Debug.LogError($"Failed to load chart from WebGL path: {chartPath}, Error: {uwr.error}");
+                Debug.LogError("❌ WebGL failed to parse chart.");
             }
         }
+        else
+        {
+            Debug.LogError($"❌ WebGL failed to load chart. Error: {uwr.error}");
+        }
     }
+}
 
+    private bool _isChartInitialized = false;
 
     private void InitializeChartContent()
     {
+        if (_isChartInitialized)
+        {
+            Debug.LogWarning("Chart is already initialized. Skipping re-initialization.");
+            return;
+        }
+
+        _isChartInitialized = true;
+
         string currentDifficulty = RetrieveDifficulty();
+        // ✅ Log the number of notes in the parsed chart before trying to spawn
+        Note[] notes = Chart.GetNotes(currentDifficulty);
+        Debug.Log($"🧐 WebGL Parsed {notes.Length} notes for difficulty: {currentDifficulty}");
+
+        if (notes.Length == 0)
+        {
+            Debug.LogError("🚨 Chart loaded, but NO NOTES found! Parsing issue?");
+        }
+
+        // Spawn Notes
         SpawnNotes(Chart.GetNotes(currentDifficulty));
         SpawnStarPower(Chart.GetStarPower(currentDifficulty));
         SpawnSynchTracks(Chart.SynchTracks);
+
+        // Adjust Camera Position Based on Notes
+        GameObject notesParent = GameObject.FindWithTag("Note Container"); // Notes Container
+        if (notesParent != null && notesParent.transform.childCount > 0)
+        {
+            // Find the first note's Z position
+            Transform firstNote = notesParent.transform.GetChild(0);
+            float firstNoteZ = firstNote.position.z; // Use world position for consistency
+            firstNoteZPosition = firstNote.position.z; // Store the first note position globally
+
+            // Adjust the camera's starting position
+            if (CameraMovement != null)
+            {
+                CameraMovement.Initialize(CameraMovement.SongStartTime, songLength);
+                CameraMovement.transform.position = new Vector3(
+                    CameraMovement.transform.position.x,
+                    CameraMovement.transform.position.y,
+                    firstNoteZ
+                );
+                Debug.Log($"Camera initialized to first note position: {firstNoteZ}");
+            }
+            else
+            {
+                Debug.LogError("CameraMovement script is not attached to the main camera or is null.");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Notes parent object or notes are missing.");
+        
+        }
+
+        // Start the Song
         StartSong();
     }
+
+
     #endregion
 
     #region Difficulty Handling
@@ -261,9 +373,8 @@ public class ChartLoaderTest : MonoBehaviour
     #region Spawn Methods
     private void SpawnSynchTracks(SynchTrack[] synchTracks)
     {
-        // Handle synchronization tracks (if necessary)
+        // Handle synchronization
     }
-
     private void SpawnStarPower(StarPower[] starPowers)
     {
         foreach (StarPower starPower in starPowers)
@@ -277,23 +388,36 @@ public class ChartLoaderTest : MonoBehaviour
     {
         foreach (Note note in notes)
         {
-            float z = note.Seconds * Speed;
+            float z = (note.Seconds * Speed) + firstNoteZPosition; // Adjust Z with offset
+
             for (int i = 0; i < SolidNotes.Length; i++)
             {
                 if (note.ButtonIndexes[i])
                 {
-                    Transform noteTmp = SpawnPrefab(SolidNotes[i], transform, new Vector3(i - 1.5f, 0, z));
-                    SetLongNoteScale(noteTmp.GetChild(0), note.DurationSeconds * Speed);
+                    Transform noteTmp = Instantiate(SolidNotes[i], transform);
+                    noteTmp.localPosition = new Vector3(i - 1.5f, 0, z);
 
-                    var spawner = noteTmp.GetComponent<NoteFactorSpawner>();
+                    NoteFactorSpawner spawner = noteTmp.GetComponent<NoteFactorSpawner>();
                     if (spawner != null)
                     {
-                        spawner.expectedHitTime = note.Seconds;
+                        double expectedHitTime = CameraMovement.SongStartTime + (noteTmp.localPosition.z / Speed);
+                        spawner.expectedHitTime = (float)expectedHitTime;
+
+                        Debug.Log($"Assigned expected hit time: {spawner.expectedHitTime} for {noteTmp.name} at position {z}");
+                    }
+                    else
+                    {
+                        Debug.LogError($"NoteFactorSpawner not found on note {noteTmp.name}");
                     }
                 }
             }
         }
     }
+
+
+
+
+
     #endregion
 
     #region Helper Methods
@@ -344,5 +468,14 @@ public class ChartLoaderTest : MonoBehaviour
         Debug.Log("All notes and objects cleared.");
     }
 
+    public void ResetLoaderState()
+    {
+        Debug.Log("Resetting loader state...");
+        ClearExistingNotes(); // Remove all instantiated notes
+        Chart = null; // Clear static chart data
+        Path = ""; // Reset the path
+        _isChartInitialized = false;
+    }
     #endregion
+
 }

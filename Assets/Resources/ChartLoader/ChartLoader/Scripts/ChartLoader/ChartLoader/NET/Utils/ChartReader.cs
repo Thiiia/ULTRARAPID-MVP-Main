@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-
 using ChartLoader.NET.Utils;
 
 using ChartLoader.NET.Framework;
@@ -28,6 +27,7 @@ namespace ChartLoader.NET.Utils
                 return _path;
             }
         }
+
 
         private Chart _chart;
         /// <summary>
@@ -57,110 +57,81 @@ namespace ChartLoader.NET.Utils
         // The file stream enumerator.
         private IEnumerator _fileScanner;
 
+
         /// <summary>
-        /// Constructor.
+        /// The Constructor with parameters.
         /// </summary>
-        
         public ChartReader()
         {
             _path = "";
             _chart = new Chart();
             _fileData = new string[0];
-            
         }
 
         /// <summary>
         /// Reads a chart file, given a specified external path, and returns the chart object.
         /// </summary>
         /// <param name="path">The chart path.</param>
-        /// <returns>Chart</returns>
+        /// <return>Chart</return>
         public Chart ReadChartFile(string path)
         {
             _path = path;
-            try
-            {
-                _fileData = IO.ReadFile(_path);
-                if (_fileData == null || _fileData.Length == 0)
-                {
-                    Debug.LogError($"File data is empty or null: {_path}");
-                    return null;
-                }
-                ParseChartText(_fileData);
-                return Chart;
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"Failed to read chart file at {_path}: {ex.Message}");
-                return null;
-            }
+            _fileData = IO.ReadFile(_path);
+            ParseChartText(_fileData);
+            return Chart;
         }
 
         /// <summary>
         /// Parses the current string.
         /// </summary>
         /// <param name="chartText">The string to parse.</param>
-        /// <returns>Chart</returns>
+        /// <return>Chart</return>
         public Chart ParseChartText(string chartText)
         {
-            try
+            if (string.IsNullOrEmpty(chartText))
             {
-                string[] stringLines = chartText.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-                ParseChartText(stringLines);
-                return Chart;
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"Failed to parse chart text: {ex.Message}");
+                Debug.LogError("❌ ChartReader received EMPTY chart data!");
                 return null;
             }
-        }
 
+            // ✅ Normalize line endings for WebGL
+            chartText = chartText.Replace("\r\n", "\n").Replace("\r", "\n");
+
+            Debug.Log($"📜 Processing {chartText.Length} characters from chart data.");
+
+            string[] stringLines = chartText.Split(new string[] { "\n" }, StringSplitOptions.None);
+
+            ParseChartText(stringLines);
+            return Chart;
+        }
         /// <summary>
         /// Parses the current string array.
         /// </summary>
         /// <param name="chartTextArray">The string array to parse.</param>
-        /// <returns>Chart</returns>
+        /// <return>Chart</return>
         public Chart ParseChartText(string[] chartTextArray)
         {
-            try
-            {
-                _fileData = chartTextArray;
-                _fileScanner = _fileData.GetEnumerator();
-                ProcessFile();
-                return Chart;
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"Failed to parse chart text array: {ex.Message}");
-                return null;
-            }
+            _fileData = chartTextArray;
+            _fileScanner = _fileData.GetEnumerator();
+            ProcessFile();
+            return Chart;
         }
 
         /// <summary>
-        /// Processes the file string array and converts it into meaningful data.
+        /// Processes the file string array and converting it into meaningful data.
         /// </summary>
         private void ProcessFile()
         {
-            Chart.Notes.Clear();
             string currentLine;
+
             while ((_fileScanner.MoveNext()) && (_fileScanner.Current != null))
             {
+                currentLine = string.Empty;
+
                 currentLine = _fileScanner.Current as string;
 
-                if (string.IsNullOrWhiteSpace(currentLine))
-                {
-                    Debug.LogWarning("Skipping empty or whitespace-only line.");
-                    continue;
-                }
-
-                try
-                {
+                if (!currentLine.Equals(string.Empty))
                     ProcessLine(currentLine);
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogError($"Error processing line: {currentLine}. Exception: {ex.Message}");
-                }
             }
         }
 
@@ -170,8 +141,6 @@ namespace ChartLoader.NET.Utils
         /// <param name="line">The line to process.</param>
         private void ProcessLine(string line)
         {
-            Debug.Log($"Processing line: {line}");
-
             switch (line)
             {
                 case "[Song]":
@@ -192,6 +161,7 @@ namespace ChartLoader.NET.Utils
             }
         }
 
+
         /// <summary>
         /// Processes all note events.
         /// </summary>
@@ -203,67 +173,77 @@ namespace ChartLoader.NET.Utils
             StarPower[] playerSP;
 
             string currentLine;
+            currentLine = string.Empty;
+
             NoteEvent noteEvent = null;
+
             NoteEvent previousNoteEvent = null;
 
             List<Note> notesList = new List<Note>();
             List<StarPower> starPowersList = new List<StarPower>();
 
-            NoteType = NoteType.Replace("[", string.Empty).Replace("]", string.Empty);
+            NoteType = NoteType.Replace("[", string.Empty)
+                    .Replace("]", string.Empty);
 
             while ((_fileScanner.MoveNext()) && (_fileScanner.Current != null))
             {
+                currentLine = string.Empty;
+
                 currentLine = _fileScanner.Current as string;
 
-                if (string.IsNullOrWhiteSpace(currentLine))
-                {
-                    Debug.LogWarning("Skipping empty or whitespace-only line in notes section.");
-                    continue;
-                }
-
-                if (currentLine.Contains("}"))
-                    break;
-
-                if (!currentLine.Contains("{"))
-                {
-                    try
+                if (!currentLine.Equals(string.Empty))
+                    // If we reached the end of this section, break out of the loop.
+                    if (currentLine.Contains("}"))
+                        break;
+                    // If the line does not contain a '{' character, begin to parse the string.
+                    else if (!currentLine.Contains("{"))
                     {
-                        CheckLineContent(currentLine, ref noteEvent, ref previousNoteEvent, ref notesList, ref starPowersList, NoteType);
+                        CheckLineContent(currentLine,
+                            ref noteEvent,
+                            ref previousNoteEvent,
+                            ref notesList,
+                            ref starPowersList,
+                            NoteType
+                            );
                     }
-                    catch (Exception ex)
-                    {
-                        Debug.LogError($"Error processing note line: {currentLine}. Exception: {ex.Message}");
-                    }
-                }
             }
 
             container = new Dictionary<string, Array>();
 
-            playerNotes = notesList.ToArray();
-            playerSP = starPowersList.ToArray();
+            playerNotes = new Note[notesList.Count];
+            notesList.CopyTo(playerNotes);
+
+            playerSP = new StarPower[starPowersList.Count];
+            starPowersList.CopyTo(playerSP);
 
             container.Add("Notes", playerNotes);
             container.Add("SP", playerSP);
 
-            if (!Chart.Notes.ContainsKey(NoteType))
-            {
-                Chart.Notes.Add(NoteType, container);
-            }
-            else
-            {
-                Debug.LogWarning($"Duplicate note type found: {NoteType}. Ignoring.");
-            }
+            Chart.Notes.Add(NoteType,
+                container);
+
         }
 
         /// <summary>
         /// Checks the current file line, and compares the contents with the previous event.
         /// </summary>
-        internal void CheckLineContent(string line, ref NoteEvent currentEvent, ref NoteEvent previousEvent,
-            ref List<Note> notesList, ref List<StarPower> starPowersList, string keyParent)
+        /// <param name="line">The current line we are working with.</param>
+        /// <param name="currentEvent">The current event we are comparing.</param>
+        /// <param name="previousEvent">The previous event we previously managed.</param>
+        /// <param name="notesList">The current event list.</param>
+        /// <param name="starPowersList">The current event list.</param>
+        /// <param name="keyParent">The current key parent.</param>
+        internal void CheckLineContent(string line,
+            ref NoteEvent currentEvent,
+            ref NoteEvent previousEvent,
+            ref List<Note> notesList,
+            ref List<StarPower> starPowersList,
+            string keyParent
+            )
         {
             EventLine eventLine = new EventLine(line);
 
-            // Create a new NoteEvent and process the provided line
+            // Create a new INoteable and process the provided line
             currentEvent = new NoteEvent(Chart, eventLine, keyParent);
 
             if (eventLine.Index == 5)
@@ -272,28 +252,44 @@ namespace ChartLoader.NET.Utils
             if (eventLine.Index == 6)
                 currentEvent.IsHOPO = true;
 
+            // If there are no notes, add it to the list.
             if (notesList.Count == 0)
                 notesList.Add(Note.GetCopy(currentEvent));
 
+
+            // If previous event is null, just make a new copy.
             if (previousEvent == null)
                 previousEvent = (NoteEvent)currentEvent.Clone();
 
-            if (previousEvent.Tick == currentEvent.Tick && previousEvent.Type == currentEvent.Type)
+
+            // If the previous starPower is on the same tick and has the same type.
+            if (previousEvent.Tick == currentEvent.Tick
+                && previousEvent.Type == currentEvent.Type)
             {
+
                 previousEvent.AppendFret(eventLine);
+
                 if (previousEvent.Type.Contains("N"))
                 {
-                    if (notesList.Count > 0)
-                        notesList[notesList.Count - 1] = Note.GetCopy(previousEvent);
+                    if (notesList.Count - 1 >= 0)
+                        notesList.RemoveAt(notesList.Count - 1);
+                    notesList.Add(Note.GetCopy(previousEvent));
                 }
                 else
                 {
-                    if (starPowersList.Count > 0)
-                        starPowersList[starPowersList.Count - 1] = StarPower.GetCopy(previousEvent);
+                    if (starPowersList.Count - 1 >= 0)
+                        starPowersList.RemoveAt(starPowersList.Count - 1);
+                    starPowersList.Add(StarPower.GetCopy(previousEvent));
                 }
+
             }
+
             else
             {
+
+
+                /* Else if it is diferent and is a StarPower type, 
+                add it to the list and re-assign the previous starPower.*/
                 if (currentEvent.Type.Contains("N"))
                 {
                     currentEvent.Index = notesList.Count;

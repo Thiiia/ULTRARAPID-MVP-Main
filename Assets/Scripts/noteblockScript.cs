@@ -1,4 +1,5 @@
 using System.Collections;
+using System;
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
@@ -11,6 +12,7 @@ public class NoteBlockScript : MonoBehaviour
     public enum NoteBlockType { GNoteblocks, DNoteblocks }
     public NoteBlockType BlockType;
     private List<Transform> activeNotes = new List<Transform>(); // Tracks Notes currently in the trigger
+    private double dspNoteHitTime;
     // Tracks notes currently flying to Factor UI
     private Dictionary<Transform, int> factorTreeMap = new Dictionary<Transform, int>();
     private Dictionary<Transform, int> factorTreeCounts = new Dictionary<Transform, int>();
@@ -26,11 +28,14 @@ public class NoteBlockScript : MonoBehaviour
     public GameObject UINoteGreenPrefab, UINoteRedPrefab, UINoteYellowPrefab, UINoteBluePrefab;
     public Camera GMainCamera;
     public Camera DMainCamera;
+    private AudioSource audioSource;
 
     [Header("Timing Thresholds")]
     public float missThreshold = 0.5f;    // Time deviation for a miss
     public float goodThreshold = 0.2f;   // Time deviation for a good hit
     public float perfectThreshold = 0.1f; // Time deviation for a perfect hit
+    public double expectedHitTime; // Expected hit time in seconds, assigned when spawning notes
+
 
     [Header("Feedback UI and Effects")]
     public TextMeshProUGUI feedbackTextUI;
@@ -41,6 +46,11 @@ public class NoteBlockScript : MonoBehaviour
 
     void Start()
     {
+        audioSource = FindObjectOfType<AudioSource>();
+        if (audioSource == null)
+        {
+            Debug.LogError("AudioSource not found in the scene.");
+        }
         // Caching factor tree UI elements
         foreach (var element in factorTreeElements)
         {
@@ -81,6 +91,7 @@ public class NoteBlockScript : MonoBehaviour
             originalScaleBlue = RefToNoteblocks[3].transform.localScale;
         }
 
+        /* 
         if (this.gameObject.name == "DNoteblocks")
         {
             defaultDPadLeftColor = RefToNoteblocks[0].GetComponent<SpriteRenderer>().color;
@@ -93,6 +104,7 @@ public class NoteBlockScript : MonoBehaviour
             originalScaleDPadUp = RefToNoteblocks[2].transform.localScale;
             originalScaleDPadDown = RefToNoteblocks[3].transform.localScale;
         }
+        */
     }
 
     public void OnChildTriggerEnter(GameObject child, Collider other)
@@ -104,6 +116,7 @@ public class NoteBlockScript : MonoBehaviour
             if (!activeNotes.Contains(noteTransform))
             {
                 activeNotes.Add(noteTransform);
+
             }
         }
     }
@@ -147,6 +160,7 @@ public class NoteBlockScript : MonoBehaviour
         }
 
         // Likewise for DNoteblocks
+        /*
         if (this.gameObject.name == "DNoteblocks")
         {
             HandleColourAndAnimation(RefToInputController.DPadLeft > 0, RefToNoteblocks[0], ref dpadLeftTween, new Color(4f / 255f, 170f / 255f, 0f, 1f), defaultDPadLeftColor, originalScaleDPadLeft);
@@ -161,55 +175,74 @@ public class NoteBlockScript : MonoBehaviour
             HandleColourAndAnimation(RefToInputController.DPadRight > 0, RefToNoteblocks[3], ref dpadDownTween, new Color(7f / 255f, 101f / 255f, 234f / 255f, 1f), defaultDPadDownColor, originalScaleDPadDown);
             HandleInteractions(RefToInputController.DPadRight > 0, RefToNoteblocks[3]);
         }
+        */
+    }
+
+    public void CheckHit()
+    {
+        if (activeNotes.Count == 0) return;
+
+        Transform note = activeNotes[0];
+        NoteFactorSpawner spawner = note.GetComponent<NoteFactorSpawner>();
+        if (spawner == null) return;
+
+        double currentDspTime = AudioSettings.dspTime;
+        float triggerWidth = GetComponentInChildren<BoxCollider>().bounds.size.z;
+        ChartLoaderTest chartLoader = FindObjectOfType<ChartLoaderTest>();
+
+        if (chartLoader != null)
+        {
+            float timingDifference = Mathf.Abs(spawner.GetTimingDifference());
+
+            // Determine the hit type based on timing thresholds
+            if (timingDifference <= perfectThreshold)
+            {
+                DisplayFeedback("Perfect");
+                InteractWithNoteInTrigger(note.GetComponent<Collider>());
+            }
+            else if (timingDifference <= goodThreshold)
+            {
+                DisplayFeedback("Good");
+                InteractWithNoteInTrigger(note.GetComponent<Collider>());
+            }
+            else
+            {
+                DisplayFeedback("Miss");
+            }
+
+            activeNotes.Remove(note);
+            Destroy(note.gameObject);
+        }
     }
 
 
     // Handle interactions
     void HandleInteractions(bool isActive, GameObject noteBlock)
     {
-        if (isActive)
+        if (isActive && activeNotes.Count > 0)
         {
-            foreach (var note in activeNotes)
+            Transform firstNote = activeNotes[0];
+            NoteFactorSpawner spawner = firstNote.GetComponent<NoteFactorSpawner>();
+
+            if (spawner == null)
             {
-                if (note == null) continue; // Skip null notes
+                Debug.LogWarning("No NoteFactorSpawner found on the note!");
+                return;
+            }
 
-                if (noteBlock.GetComponent<Collider>().bounds.Intersects(note.GetComponent<Collider>().bounds))
-                {
-                    NoteFactorSpawner spawner = note.GetComponent<NoteFactorSpawner>();
-                    if (spawner != null)
-                    {
-                        float timingDifference = Mathf.Abs(spawner.GetTimingDifference());
+            if (noteBlock.GetComponent<Collider>().bounds.Intersects(firstNote.GetComponent<Collider>().bounds))
+            {
+                CheckHit();
 
-                        // Timing feedback
-                        if (timingDifference <= perfectThreshold)
-                        {
-                            DisplayFeedback("Perfect");
-                            // Instantiate(perfectFeedbackPrefab, note.transform.position, Quaternion.identity);
-                        }
-                        else if (timingDifference <= goodThreshold)
-                        {
-                            DisplayFeedback("Good");
-                        }
-                        else if (timingDifference > missThreshold)
-                        {
-                            DisplayFeedback("Miss");
-                        }
 
-                        // Call factor logic
-                        InteractWithNoteInTrigger(note.GetComponent<Collider>());
-
-                        // Destroy the world-space note since it's transitioning to UI
-                        activeNotes.Remove(note);
-                        Destroy(note.gameObject);
-                        break; // Exit loop since the note was processed
-                    }
-                }
             }
         }
     }
 
+
+
     // Define interactions with Notes currently inside the trigger
-    void InteractWithNoteInTrigger(Collider note)
+    public void InteractWithNoteInTrigger(Collider note)
     {
         NoteFactorSpawner spawner = note.GetComponent<NoteFactorSpawner>();
         if (spawner == null)
@@ -221,7 +254,7 @@ public class NoteBlockScript : MonoBehaviour
         foreach (var pair in factorTreeMap)
         {
             // Match the factor value and ensure the node isn't already full
-            if (pair.Value == spawner.assignedFactor && factorTreeCounts[pair.Key] < 7)
+            if (pair.Value == spawner.assignedFactor && factorTreeCounts[pair.Key] < 5)
             {
                 // Dynamically find the correct camera based on BlockType
                 Camera activeCamera = (BlockType == NoteBlockType.GNoteblocks)
@@ -242,7 +275,7 @@ public class NoteBlockScript : MonoBehaviour
 
                 // Increment factor tree count
                 factorTreeCounts[pair.Key]++;
-                if (factorTreeCounts[pair.Key] >= 7)
+                if (factorTreeCounts[pair.Key] >= 5)
                 {
                     TriggerNodeFullFeedback(pair.Key);
                     TextMeshProUGUI textComponent = pair.Key.GetComponent<TextMeshProUGUI>();
@@ -310,89 +343,99 @@ public class NoteBlockScript : MonoBehaviour
 
         // Convert world note position to screen space relative to the current camera
         Vector3 screenPosition = currentCamera.WorldToScreenPoint(worldNote.transform.position);
-
-        // Ensure the note is visible in front of the camera
-        if (screenPosition.z <= 0)
+        if (uiNoteRect != null)
         {
-            Debug.LogWarning($"World note {worldNote.name} is out of view or behind the camera.");
-            Destroy(uiNote);
-            return;
+            // Ensure the note is visible in front of the camera
+            if (screenPosition.z <= 0)
+            {
+                Debug.LogWarning($"World note {worldNote.name} is out of view or behind the camera.");
+                Destroy(uiNote);
+                return;
+            }
+
+            // Convert screen space to canvas space
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                canvasRect,
+                screenPosition,
+                parentCanvas.worldCamera,
+                out Vector2 uiStartPosition
+            );
+
+            if (uiNoteRect != null)
+            {
+                // Set the UI note's starting position
+                uiNoteRect.anchoredPosition = uiStartPosition;
+            }
+
+
+
+            // Copy the number from the world note to the UI note
+            TextMeshPro worldText = worldNote.GetComponentInChildren<TextMeshPro>();
+            TextMeshProUGUI uiText = uiNote.GetComponentInChildren<TextMeshProUGUI>();
+            if (worldText != null && uiText != null)
+            {
+                uiText.text = worldText.text;
+            }
+
+            // Convert the target element's position to screen space relative to the same camera
+            Vector3 targetScreenPosition = currentCamera.WorldToScreenPoint(targetElement.position);
+
+            // Convert target screen space to canvas space
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                canvasRect,
+                targetScreenPosition,
+                parentCanvas.worldCamera,
+                out Vector2 uiTargetPosition
+            );
+
+            // Animate the UI note to the target position
+            float animationDuration = 0.8f; // Adjust for speed
+            if (uiNoteRect != null)
+            {
+                uiNoteRect.DORotate(new Vector3(0, 0, 20), animationDuration, RotateMode.FastBeyond360);
+                uiNoteRect.DOAnchorPos(uiTargetPosition, animationDuration).SetEase(Ease.InOutQuad).OnComplete(() =>
+                {
+                    if (uiNoteRect != null)
+                    {
+                        uiNoteRect.DOScale(Vector3.one, 0.8f).SetEase(Ease.OutBounce);
+                    }
+
+                    // Destroy the UI note after it reaches the target
+                    Destroy(uiNote);
+                    Debug.Log($"UI note {uiNote.name} successfully reached target: {targetElement.name}");
+                });
+            }
+
         }
 
-        // Convert screen space to canvas space
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            canvasRect,
-            screenPosition,
-            parentCanvas.worldCamera,
-            out Vector2 uiStartPosition
-        );
 
-        // Set the UI note's starting position
-        uiNoteRect.anchoredPosition = uiStartPosition;
-
-        // Copy the number from the world note to the UI note
-        TextMeshPro worldText = worldNote.GetComponentInChildren<TextMeshPro>();
-        TextMeshProUGUI uiText = uiNote.GetComponentInChildren<TextMeshProUGUI>();
-        if (worldText != null && uiText != null)
-        {
-            uiText.text = worldText.text;
-        }
-
-        // Convert the target element's position to screen space relative to the same camera
-        Vector3 targetScreenPosition = currentCamera.WorldToScreenPoint(targetElement.position);
-
-        // Convert target screen space to canvas space
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            canvasRect,
-            targetScreenPosition,
-            parentCanvas.worldCamera,
-            out Vector2 uiTargetPosition
-        );
-
-        // Animate the UI note to the target position
-        float animationDuration = 1.5f; // Adjust for speed
-        uiNoteRect.DOAnchorPos(uiTargetPosition, animationDuration).SetEase(Ease.InOutQuad).OnComplete(() =>
-        {
-            // Destroy the UI note after it reaches the target
-            Destroy(uiNote);
-            Debug.Log($"UI note {uiNote.name} successfully reached target: {targetElement.name}");
-        });
     }
 
 
 
     // Handles the visual effects and scaling for button presses
-    void HandleColourAndAnimation(bool isActive, GameObject noteBlock, ref Tween currentTween, Color targetColor, Color defaultColor, Vector3 originalScale)
+   void HandleColourAndAnimation(bool isActive, GameObject noteBlock, ref Tween currentTween, Color targetColor, Color defaultColor, Vector3 originalScale)
+{
+    SpriteRenderer sr = noteBlock.GetComponent<SpriteRenderer>();
+    
+
+    if (isActive && sr.color != targetColor)
     {
-        SpriteRenderer sr = noteBlock.GetComponent<SpriteRenderer>();
-        SpriteRenderer[] childSpriteRenderers = noteBlock.GetComponentsInChildren<SpriteRenderer>();
-
-        if (isActive && sr.color != targetColor)
-        {
-            currentTween?.Kill();
-            currentTween = DOTween.Sequence()
-                .Append(noteBlock.transform.DOScale(originalScale * 1.2f, 0.1f).SetEase(Ease.OutBack))
-                .Join(sr.DOColor(targetColor, 0.2f).SetEase(Ease.Linear))
-                .Append(noteBlock.transform.DOScale(originalScale, 0.2f).SetEase(Ease.OutBounce));
-
-            foreach (var childSr in childSpriteRenderers)
-            {
-                childSr.DOColor(targetColor, 0.2f).SetEase(Ease.Linear);
-            }
-        }
-        else if (!isActive && sr.color != defaultColor)
-        {
-            currentTween?.Kill();
-            currentTween = DOTween.Sequence()
-                .Append(sr.DOColor(defaultColor, 0.2f).SetEase(Ease.Linear))
-                .Join(noteBlock.transform.DOScale(originalScale, 0.1f));
-
-            foreach (var childSr in childSpriteRenderers)
-            {
-                childSr.DOColor(defaultColor, 0.2f).SetEase(Ease.Linear);
-            }
-        }
+        currentTween?.Kill();
+        currentTween = DOTween.Sequence()
+            .Append(noteBlock.transform.DOScale(originalScale * 1.4f, .5f).SetEase(Ease.OutElastic)) // Bigger pop effect with elasticity
+            .Join(sr.DOColor(targetColor, 0.2f).SetEase(Ease.Linear)) // Slightly longer color transition
+            .Append(noteBlock.transform.DOScale(originalScale * 1.2f, .5f).SetEase(Ease.InOutQuad)) // Settling effect
+            .Append(noteBlock.transform.DOScale(originalScale, 0.2f).SetEase(Ease.OutBounce)); // More bouncy return
     }
+    else if (!isActive && sr.color != defaultColor)
+    {
+        currentTween?.Kill();
+        currentTween = DOTween.Sequence()
+            .Append(sr.DOColor(defaultColor, 0.2f).SetEase(Ease.Linear))
+            .Join(noteBlock.transform.DOScale(originalScale, 0.1f));
+    }
+}
     void UpdateFactorTreeNode(Transform node)
     {
         TextMeshProUGUI nodeText = node.GetComponent<TextMeshProUGUI>();
@@ -417,7 +460,7 @@ public class NoteBlockScript : MonoBehaviour
             RectTransform indicatorRect = glowEffect.GetComponent<RectTransform>();
             if (indicatorRect != null)
             {
-                indicatorRect.anchoredPosition = new Vector2(0, 65); // Position above the node
+                indicatorRect.anchoredPosition = new Vector2(0, 66); // Position above the node
             }
 
             // Play glow animation
@@ -432,13 +475,55 @@ public class NoteBlockScript : MonoBehaviour
         }
     }
 
-    void DisplayFeedback(string feedbackText)
+    void DisplayFeedback(string feedbackType)
     {
         if (feedbackTextUI != null)
         {
-            feedbackTextUI.text = feedbackText; // Set the feedback text
-            feedbackTextUI.DOFade(1f, 0.2f) // Fade in
-                .OnComplete(() => feedbackTextUI.DOFade(0f, 0.5f)); // Fade out
+            // Kill any existing tweens to prevent overlapping animations
+            DOTween.Kill(feedbackTextUI.transform);
+            DOTween.Kill(feedbackTextUI);
+
+            // Reset the scale to default size before applying animations
+            feedbackTextUI.transform.localScale = Vector3.one;
+
+            // Set the feedback text and apply corresponding color effect
+            feedbackTextUI.text = feedbackType;
+            switch (feedbackType)
+            {
+                case "Perfect":
+                    feedbackTextUI.color = Color.green;
+                    break;
+                case "Good":
+                    feedbackTextUI.color = Color.yellow;
+                    break;
+                case "Miss":
+                    feedbackTextUI.color = Color.red;
+                    break;
+                default:
+                    feedbackTextUI.color = Color.white;
+                    break;
+            }
+
+            // Animate: Fade in, pulse effect, shake, then fade out
+            feedbackTextUI.DOFade(1f, 0.3f).SetEase(Ease.InCubic)
+                .OnComplete(() =>
+                {
+                    feedbackTextUI.transform
+                        .DOScale(Vector3.one * 1.2f, 0.2f).SetEase(Ease.OutQuad) // Pulse effect
+                        .OnComplete(() =>
+                        {
+                            feedbackTextUI.transform.DOShakeScale(0.3f, 0.5f, 15, 90, false, ShakeRandomnessMode.Harmonic); // Shake effect
+                        });
+
+                    feedbackTextUI.DOFade(0f, 0.4f).SetEase(Ease.OutCubic); // Fade out
+                });
+
+            // Reset scale after animation completes
+            feedbackTextUI.transform.DOScale(Vector3.one, 0.2f).SetDelay(0.8f).SetEase(Ease.OutQuad);
+        }
+        else
+        {
+            Debug.LogWarning($"Feedback type '{feedbackType}' triggered, but feedbackTextUI is not assigned.");
         }
     }
 

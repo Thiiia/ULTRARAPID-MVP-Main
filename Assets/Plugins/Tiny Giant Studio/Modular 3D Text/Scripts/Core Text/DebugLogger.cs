@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Windows;
 
 namespace TinyGiantStudio.Text
 {
@@ -41,7 +42,15 @@ namespace TinyGiantStudio.Text
         public void LogTextUpdate(string oldText, string newText)
         {
             if (LoggingTurnedOn() && text.logTextUpdates)
+            {
                 Debug.Log("Old Text is \"<color=green>" + oldText + "</color>\"" + " new Text is \"<color=green>" + newText + "</color>\"", text.gameObject);
+
+                foreach (char c in newText)
+                {
+                    int asciiCode = (int)c; // Get ASCII code of the character
+                    Debug.Log($"Character: '{c}', ASCII Code: {asciiCode}");
+                }
+            }
         }
 
         public void LogFontUpdate(Font oldFont, Font newFont)

@@ -18,11 +18,18 @@ public class DropdownSwitcher : MonoBehaviour
     {
         Debug.Log($"DropdownSwitcher Start. SelectedIndex: {SelectedIndex}");
 
+        // Ensure everything is cleared before any chart is loaded
+        ChartLoaderTest chartLoader = FindObjectOfType<ChartLoaderTest>();
+        if (chartLoader != null)
+        {
+            chartLoader.ResetLoaderState(); // Clear notes and reset chart state
+        }
+
         // Set the dropdown to match the current selection or default to 0
         if (SelectedIndex >= 0)
         {
             chartDropdown.value = SelectedIndex;
-            ApplySettings(SelectedIndex);
+            ApplySettings(SelectedIndex); // Load the selected chart and audio
         }
         else
         {
@@ -34,51 +41,70 @@ public class DropdownSwitcher : MonoBehaviour
         chartDropdown.onValueChanged.AddListener(OnDropdownValueChanged);
     }
 
+
     void OnDropdownValueChanged(int index)
     {
         Debug.Log($"Dropdown value changed to index: {index}");
-        SelectedIndex = index; // Save the new selection
 
-        // Log current chart and audio paths
-        Debug.Log($"Current chart path: {chartPaths[index]}, audio path: {audioPaths[index]}");
+        // Update chart path for the selected chart
+        string selectedChartPath = chartPaths[index];
+        string selectedAudioPath = audioPaths[index];
 
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); // Reload the scene
+        // Update the ChartLoaderTest with the new paths
+        ChartLoaderTest chartLoader = FindObjectOfType<ChartLoaderTest>();
+        if (chartLoader != null)
+        {
+            chartLoader.Path = selectedChartPath; // Update the chart path
+            chartLoader.Music.clip = Resources.Load<AudioClip>(selectedAudioPath); // Load the new audio
+            chartLoader.Music.Stop(); // Stop current audio playback
+            chartLoader.ClearExistingNotes(); // Clear the notes for the previous chart
+
+            Debug.Log($"Applying settings for new chart: {selectedChartPath}");
+
+            // Reinitialize songStartTime, songLength, and reload the chart
+            chartLoader.LoadAndInitializeChart();
+        }
+        else
+        {
+            Debug.LogError("ChartLoaderTest instance not found!");
+        }
     }
-
     void ApplySettings(int index)
     {
         Debug.Log($"Applying settings for index: {index}");
 
-        // Clear existing chart and notes
-        ChartLoaderTest chartLoader = FindObjectOfType<ChartLoaderTest>();
-        if (chartLoader != null)
+        // Stop current audio
+        if (audioSource != null)
         {
-            chartLoader.ClearExistingNotes();
-            ChartLoaderTest.Chart = null; // Reset the chart object
-            Debug.Log("Cleared existing notes and chart.");
-        }
-        else
-        {
-            Debug.LogError("ChartLoaderTest instance not found in the scene.");
+            audioSource.Stop();
+            audioSource.clip = null; // Clear the current audio clip
+            Debug.Log("Stopped and cleared the current audio source.");
         }
 
         // Load and apply the chart
         if (chartPaths.Length > index)
         {
-            string chartFullPath = Path.Combine(Application.streamingAssetsPath, chartPaths[index]);
-            Debug.Log($"Switching chart to path: {chartFullPath}");
+            string relativePath = chartPaths[index];
+            string chartFullPath = Path.Combine(Application.streamingAssetsPath, relativePath);
 
+            ChartLoaderTest chartLoader = FindObjectOfType<ChartLoaderTest>();
             if (chartLoader != null)
             {
-                chartLoader.Path = chartPaths[index];
+                chartLoader.Path = relativePath; // Set the relative path
+                Debug.Log($"Updated ChartLoaderTest Path to: {chartLoader.Path}");
+
                 if (Application.platform == RuntimePlatform.WebGLPlayer)
                 {
-                    StartCoroutine(chartLoader.LoadChartWebGL(chartFullPath)); // WebGL chart loading
+                   // StartCoroutine(chartLoader.LoadChartWebGL(chartFullPath)); // WebGL chart loading
                 }
                 else
                 {
                     chartLoader.ReloadChart(); // Windows and other platforms
                 }
+            }
+            else
+            {
+                Debug.LogError("ChartLoaderTest instance not found in the scene.");
             }
         }
 
@@ -90,6 +116,9 @@ public class DropdownSwitcher : MonoBehaviour
             StartCoroutine(LoadAudio(audioFullPath));
         }
     }
+
+
+
 
 
     IEnumerator LoadAudio(string path)
@@ -112,9 +141,10 @@ public class DropdownSwitcher : MonoBehaviour
                 AudioClip clip = DownloadHandlerAudioClip.GetContent(uwr);
                 if (audioSource != null)
                 {
-                    audioSource.Stop();
-                    audioSource.clip = clip;
-                    audioSource.Play();
+                    audioSource.Stop(); // Ensure the current audio is stopped
+                    audioSource.clip = clip; // Assign the new audio clip
+                    audioSource.Play(); // Start playing the new audio
+                    Debug.Log("Started playing new audio.");
                 }
             }
             else
@@ -123,6 +153,7 @@ public class DropdownSwitcher : MonoBehaviour
             }
         }
     }
+
 
     IEnumerator LoadInitialSettings()
     {
@@ -141,7 +172,7 @@ public class DropdownSwitcher : MonoBehaviour
                 chartLoader.Path = chartPaths[0];
                 if (Application.platform == RuntimePlatform.WebGLPlayer)
                 {
-                    yield return chartLoader.LoadChartWebGL(chartFullPath);
+                    // yield return chartLoader.LoadChartWebGL(chartFullPath);
                 }
                 else
                 {

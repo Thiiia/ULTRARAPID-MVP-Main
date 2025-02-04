@@ -64,11 +64,11 @@ public class XplorerGuitarInput : MonoBehaviour
     // Retrieves the current keyboard input.
     private void GetKeyboardInput()
     {
-        green = Input.GetKey(KeyCode.A);          // Corresponds to the 'A' button
-        red = Input.GetKey(KeyCode.S);            // Corresponds to the 'B' button
-        yellow = Input.GetKey(KeyCode.D);         // Corresponds to the 'Y' button
-        blue = Input.GetKey(KeyCode.F);           // Corresponds to the 'X' button
-        orange = Input.GetKey(KeyCode.LeftShift); // Corresponds to 'Left Shoulder'
+        green = Input.GetKeyDown(KeyCode.A);          // Corresponds to the 'A' button
+        red = Input.GetKeyDown(KeyCode.S);            // Corresponds to the 'B' button
+        yellow = Input.GetKeyDown(KeyCode.D);         // Corresponds to the 'Y' button
+        blue = Input.GetKeyDown(KeyCode.F);           // Corresponds to the 'X' button
+        orange = Input.GetKeyDown(KeyCode.LeftShift); // Corresponds to 'Left Shoulder'
 
         A = returnState(green, A);
         B = returnState(red, B);

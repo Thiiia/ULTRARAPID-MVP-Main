@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 
 #if MODULAR_3D_TEXT
 
@@ -117,18 +116,34 @@ namespace TinyGiantStudio.Layout
 
         public bool IgnoreChildBound(Bounds[] bounds, int i)
         {
+            //Added the guard clause because someone was having an error with transform.GetChild(i) in the IgnoreChildBoundAndLineBreak() method. Which is weird. Requires further investigation
+            if (i < 0 || i >= transform.childCount)
+                return true;
+
             if (transform.GetChild(i).GetComponent<LayoutElement>())
                 if (transform.GetChild(i).GetComponent<LayoutElement>().ignoreElement == true)
                     return true;
+
+            //Added this just in case. Not required. Requires further investigation
+            if (i >= bounds.Length)
+                return true;
 
             return !transform.GetChild(i).gameObject.activeSelf || bounds[i].size == Vector3.zero;
         }
 
         public bool IgnoreChildBoundAndLineBreak(Bounds[] bounds, int i)
         {
+            //Added the guard clause because someone was having an error with transform.GetChild(i). Which is weird. Requires further investigation
+            if (i < 0 || i >= transform.childCount)
+                return true;
+
             if (transform.GetChild(i).GetComponent<LayoutElement>())
                 if (transform.GetChild(i).GetComponent<LayoutElement>().ignoreElement == true || transform.GetChild(i).GetComponent<LayoutElement>().lineBreak == true)
                     return true;
+
+            //Added this just in case. Not required. Requires further investigation
+            if (i >= bounds.Length)
+                return true;
 
             return !transform.GetChild(i).gameObject.activeSelf || bounds[i].size == Vector3.zero;
         }
@@ -145,21 +160,21 @@ namespace TinyGiantStudio.Layout
             return vector3;
         }
 
-//#if MODULAR_3D_TEXT
+        //#if MODULAR_3D_TEXT
 
-//        /// <summary>
-//        /// Safely dispose of the mesh from memory
-//        /// </summary>
-//        /// <param name="meshLayout"></param>
-//        /// <returns></returns>
-//        public MeshLayout ClearMeshLayout(MeshLayout meshLayout)
-//        {
-//            DestroyMesh(meshLayout.mesh);
-//            meshLayout.mesh = null;
-//            return meshLayout;
-//        }
+        //        /// <summary>
+        //        /// Safely dispose of the mesh from memory
+        //        /// </summary>
+        //        /// <param name="meshLayout"></param>
+        //        /// <returns></returns>
+        //        public MeshLayout ClearMeshLayout(MeshLayout meshLayout)
+        //        {
+        //            DestroyMesh(meshLayout.mesh);
+        //            meshLayout.mesh = null;
+        //            return meshLayout;
+        //        }
 
-//#endif
+        //#endif
 
         ///// <summary>
         ///// This is used to destroy meshes

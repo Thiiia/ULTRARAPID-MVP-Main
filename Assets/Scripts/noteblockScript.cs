@@ -251,15 +251,26 @@ public class NoteBlockScript : MonoBehaviour
             return;
         }
 
+        bool foundMatch = false;
+
         foreach (var pair in factorTreeMap)
         {
-            // Match the factor value and ensure the node isn't already full
-            if (pair.Value == spawner.assignedFactor && factorTreeCounts[pair.Key] < 5)
+            TextMeshProUGUI nodeText = pair.Key.GetComponent<TextMeshProUGUI>();
+            if (nodeText == null || nodeText.alpha == 0f) // If hidden, skip
             {
+                Debug.Log($"Factor {pair.Value} is still hidden. Skipping...");
+                continue;
+            }
+
+            // Match the factor value and ensure the node isn't already full
+            if (pair.Value == spawner.assignedFactor && factorTreeCounts[pair.Key] < 3)
+            {
+                foundMatch = true;
+
                 // Dynamically find the correct camera based on BlockType
                 Camera activeCamera = (BlockType == NoteBlockType.GNoteblocks)
-                    ? GameObject.Find("GMain Camera").GetComponent<Camera>() // For Guitar notes
-                    : GameObject.Find("DMain Camera").GetComponent<Camera>(); // For Drum notes
+                    ? GameObject.Find("GMain Camera")?.GetComponent<Camera>()
+                    : GameObject.Find("DMain Camera")?.GetComponent<Camera>();
 
                 if (activeCamera == null)
                 {
@@ -275,8 +286,28 @@ public class NoteBlockScript : MonoBehaviour
 
                 // Increment factor tree count
                 factorTreeCounts[pair.Key]++;
-                if (factorTreeCounts[pair.Key] >= 5)
+                if (factorTreeCounts[pair.Key] >= 3)
                 {
+                    Debug.Log($"Factor {pair.Value} is FULL! Unlocking next set of factors...");
+                    DisplayFeedback($"Factor {pair.Value} is FULL! Unlocking next set of factors...");
+
+                    GameObject factorBlock = pair.Key.gameObject;
+                    if (factorBlock.GetComponent<TextMeshProUGUI>() != null && factorBlock.transform.parent != null)
+                    {
+                        factorBlock = factorBlock.transform.parent.gameObject; // Get the actual parent Factor Block
+                    }
+
+                    // Call TempFactorScript to unlock new factors
+                    TempFactorScript tempFactorScript = FindObjectOfType<TempFactorScript>();
+                    if (tempFactorScript != null)
+                    {
+                        tempFactorScript.UnlockNextFactors(factorBlock);
+                    }
+                    else
+                    {
+                        Debug.LogError("TempFactorScript not found in the scene!");
+                    }
+
                     TriggerNodeFullFeedback(pair.Key);
                     TextMeshProUGUI textComponent = pair.Key.GetComponent<TextMeshProUGUI>();
                     string factorValueText = textComponent != null ? textComponent.text : "Unknown";
@@ -286,7 +317,7 @@ public class NoteBlockScript : MonoBehaviour
                     Transform existingIndicator = pair.Key.Find("FullIndicator");
                     if (existingIndicator == null && fullIndicatorPrefab != null)
                     {
-                        // Instantiate the full indicator 
+                        // Instantiate the full indicator
                         GameObject fullIndicator = Instantiate(fullIndicatorPrefab, pair.Key);
                         fullIndicator.name = "FullIndicator";
 
@@ -303,10 +334,14 @@ public class NoteBlockScript : MonoBehaviour
             }
         }
 
-        // If no match is found
-        Debug.Log($"No match found for factor {spawner.assignedFactor}");
-        DisplayFeedback("Wrong Factor");
+        if (!foundMatch)
+        {
+            Debug.Log($"No valid match found for factor {spawner.assignedFactor}. UI note will not fly.");
+            DisplayFeedback("Wrong Factor");
+        }
     }
+
+
 
     void AnimateNumberFlying(GameObject worldNote, Transform targetElement, Camera currentCamera)
     {
@@ -414,36 +449,80 @@ public class NoteBlockScript : MonoBehaviour
 
 
     // Handles the visual effects and scaling for button presses
-   void HandleColourAndAnimation(bool isActive, GameObject noteBlock, ref Tween currentTween, Color targetColor, Color defaultColor, Vector3 originalScale)
-{
-    SpriteRenderer sr = noteBlock.GetComponent<SpriteRenderer>();
-    
+    void HandleColourAndAnimation(bool isActive, GameObject noteBlock, ref Tween currentTween, Color targetColor, Color defaultColor, Vector3 originalScale)
+    {
+        SpriteRenderer sr = noteBlock.GetComponent<SpriteRenderer>();
 
-    if (isActive && sr.color != targetColor)
-    {
-        currentTween?.Kill();
-        currentTween = DOTween.Sequence()
-            .Append(noteBlock.transform.DOScale(originalScale * 1.4f, .5f).SetEase(Ease.OutElastic)) // Bigger pop effect with elasticity
-            .Join(sr.DOColor(targetColor, 0.2f).SetEase(Ease.Linear)) // Slightly longer color transition
-            .Append(noteBlock.transform.DOScale(originalScale * 1.2f, .5f).SetEase(Ease.InOutQuad)) // Settling effect
-            .Append(noteBlock.transform.DOScale(originalScale, 0.2f).SetEase(Ease.OutBounce)); // More bouncy return
+
+        if (isActive && sr.color != targetColor)
+        {
+            currentTween?.Kill();
+            currentTween = DOTween.Sequence()
+                .Append(noteBlock.transform.DOScale(originalScale * 1.4f, .5f).SetEase(Ease.OutElastic)) // Bigger pop effect with elasticity
+                .Join(sr.DOColor(targetColor, 0.2f).SetEase(Ease.Linear)) // Slightly longer color transition
+                .Append(noteBlock.transform.DOScale(originalScale * 1.2f, .5f).SetEase(Ease.InOutQuad)) // Settling effect
+                .Append(noteBlock.transform.DOScale(originalScale, 0.2f).SetEase(Ease.OutBounce)); // More bouncy return
+        }
+        else if (!isActive && sr.color != defaultColor)
+        {
+            currentTween?.Kill();
+            currentTween = DOTween.Sequence()
+                .Append(sr.DOColor(defaultColor, 0.2f).SetEase(Ease.Linear))
+                .Join(noteBlock.transform.DOScale(originalScale, 0.1f));
+        }
     }
-    else if (!isActive && sr.color != defaultColor)
+void UpdateFactorTreeNode(Transform node)
+{
+    TextMeshProUGUI nodeText = node.GetComponent<TextMeshProUGUI>();
+    if (nodeText != null)
     {
-        currentTween?.Kill();
-        currentTween = DOTween.Sequence()
-            .Append(sr.DOColor(defaultColor, 0.2f).SetEase(Ease.Linear))
-            .Join(noteBlock.transform.DOScale(originalScale, 0.1f));
+        if (nodeText.alpha == 0f) // If hidden, fade in and update text
+        {
+            nodeText.alpha = 1f; // Ensure visibility
+            nodeText.DOFade(1f, 0.5f).SetEase(Ease.InOutQuad);
+        }
+
+        // Ensure the correct number is displayed
+        if (factorTreeMap.ContainsKey(node))
+        {
+            nodeText.text = factorTreeMap[node].ToString();
+        }
+
+        // Unlock next factors when full
+        if (factorTreeCounts[node] >= 3)
+        {
+            Debug.Log($"{node.name} is full! Revealing next factors.");
+
+            // Find TempFactorScript and call UnlockNextFactors
+            TempFactorScript tempFactorScript = FindObjectOfType<TempFactorScript>();
+            if (tempFactorScript != null)
+            {
+                tempFactorScript.UnlockNextFactors(node.gameObject);
+            }
+            else
+            {
+                Debug.LogError("TempFactorScript not found in the scene!");
+            }
+        }
     }
 }
-    void UpdateFactorTreeNode(Transform node)
+
+
+
+    // Helper function to reveal a factor block
+    void ShowFactorBlock(string factorName)
     {
-        TextMeshProUGUI nodeText = node.GetComponent<TextMeshProUGUI>();
-        if (nodeText != null && nodeText.alpha == 0f) // Only update if hidden
+        foreach (Transform factor in factorTreeElements)
         {
-            nodeText.alpha = 0f; // Ensure it's hidden initially
-            nodeText.text = factorTreeMap[node].ToString(); // Set the text
-            nodeText.DOFade(1f, 0.5f).SetEase(Ease.InOutQuad); // Fade in animation
+            if (factor.name == factorName)
+            {
+                TextMeshProUGUI factorText = factor.GetComponent<TextMeshProUGUI>();
+                if (factorText != null && factorText.alpha == 0f)
+                {
+                    factorText.DOFade(1f, 0.5f).SetEase(Ease.InOutQuad);
+                    Debug.Log($"Revealed {factorName}");
+                }
+            }
         }
     }
 

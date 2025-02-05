@@ -69,6 +69,7 @@ public class NoteBlockScript : MonoBehaviour
 
                 factorTreeMap[element] = factorValue; // Store the factor value
             }
+            
         }
 
         foreach (var element in factorTreeElements)
@@ -258,7 +259,7 @@ public class NoteBlockScript : MonoBehaviour
             TextMeshProUGUI nodeText = pair.Key.GetComponent<TextMeshProUGUI>();
             if (nodeText == null || nodeText.alpha == 0f) // If hidden, skip
             {
-                Debug.Log($"Factor {pair.Value} is still hidden. Skipping...");
+                //Debug.Log($"Factor {pair.Value} is still hidden. Skipping...");
                 continue;
             }
 

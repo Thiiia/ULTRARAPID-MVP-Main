@@ -403,7 +403,7 @@ public class ChartLoaderTest : MonoBehaviour
                         double expectedHitTime = CameraMovement.SongStartTime + (noteTmp.localPosition.z / Speed);
                         spawner.expectedHitTime = (float)expectedHitTime;
 
-                        Debug.Log($"Assigned expected hit time: {spawner.expectedHitTime} for {noteTmp.name} at position {z}");
+                       // Debug.Log($"Assigned expected hit time: {spawner.expectedHitTime} for {noteTmp.name} at position {z}");
                     }
                     else
                     {

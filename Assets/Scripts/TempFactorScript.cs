@@ -19,6 +19,9 @@ public class TempFactorScript : MonoBehaviour
         }
         RootFactorBlock.SetActive(true);
         factorCompletion[RootFactorBlock] = true; // Root is always completed
+        EnableFactorBlock(0);
+        EnableFactorBlock(5);
+        
     }
 
     public void UnlockNextFactors(GameObject completedFactor)

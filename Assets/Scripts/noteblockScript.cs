@@ -43,6 +43,7 @@ public class NoteBlockScript : MonoBehaviour
 
     public Transform[] factorTreeElements;
     public GameObject fullIndicatorPrefab; // When la factor tree is full
+    public int completedFactorsRef;
 
     void Start()
     {
@@ -108,20 +109,24 @@ public class NoteBlockScript : MonoBehaviour
         */
     }
 
-    public void OnChildTriggerEnter(GameObject child, Collider other)
+  public void OnChildTriggerEnter(GameObject child, Collider other)
+{
+    if (other.CompareTag("Note"))
     {
-        if (other.CompareTag("Note"))
+        Transform noteTransform = other.transform;
+        if (!activeNotes.Contains(noteTransform))
         {
-            // Add Note to activeNotes list if not already present
-            Transform noteTransform = other.transform;
-            if (!activeNotes.Contains(noteTransform))
-            {
-                activeNotes.Add(noteTransform);
+            activeNotes.Add(noteTransform);
 
+            // Start the fade effect for the TextMeshPro component
+            TextMeshPro noteText = other.GetComponentInChildren<TextMeshPro>();
+            if (noteText != null)
+            {
+                noteText.DOFade(0.4f, 0.35f).SetEase(Ease.InOutQuad); // Fades to 50% alpha over 0.5s
             }
         }
     }
-
+}
     public void OnChildTriggerExit(GameObject child, Collider other)
     {
         if (other.CompareTag("Note"))
@@ -530,6 +535,7 @@ void UpdateFactorTreeNode(Transform node)
 
     void TriggerNodeFullFeedback(Transform node)
     {
+        
         TextMeshProUGUI nodeText = node.GetComponent<TextMeshProUGUI>();
         if (nodeText != null && nodeText.alpha == 1f) // Only proceed if the text is visible
         {
@@ -552,6 +558,7 @@ void UpdateFactorTreeNode(Transform node)
 
             // Change text color to indicate completion
             nodeText.DOColor(Color.yellow, 0.5f).SetLoops(2, LoopType.Yoyo);
+            completedFactorsRef = completedFactorsRef + 1;
         }
     }
 

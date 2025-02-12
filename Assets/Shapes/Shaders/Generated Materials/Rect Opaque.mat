@@ -25,7 +25,7 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _ColorMask: 15
+    - _ColorMask: 14
     - _StencilComp: 8
     - _StencilID: 0
     - _StencilOp: 0
@@ -34,6 +34,6 @@ Material:
     - _StencilWriteMask: 255
     - _ZOffsetFactor: 0
     - _ZOffsetUnits: 0
-    - _ZTest: 2
+    - _ZTest: 4
     m_Colors: []
   m_BuildTextureStacks: []

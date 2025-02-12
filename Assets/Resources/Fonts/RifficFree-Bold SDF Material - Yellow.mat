@@ -11,8 +11,7 @@ Material:
   m_Shader: {fileID: 4800000, guid: dd89cf5b9246416f84610a006f916af7, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords:
-  - GLOW_ON
+  m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -71,10 +70,10 @@ Material:
     - _OutlineSoftness: 0
     - _OutlineUVSpeedX: 0
     - _OutlineUVSpeedY: 0
-    - _OutlineWidth: 1
+    - _OutlineWidth: 0.85
     - _PerspectiveFilter: 0.875
     - _Reflectivity: 10
-    - _ScaleRatioA: 0.7619048
+    - _ScaleRatioA: 0.85714287
     - _ScaleRatioB: 0.75
     - _ScaleRatioC: 0.75
     - _ScaleX: 1
@@ -100,10 +99,10 @@ Material:
     m_Colors:
     - _ClipRect: {r: -32767, g: -32767, b: 32767, a: 32767}
     - _EnvMatrixRotation: {r: 0, g: 0, b: 0, a: 0}
-    - _FaceColor: {r: 9.849154, g: 5.475083, b: 0.6039579, a: 1}
+    - _FaceColor: {r: 4.541205, g: 2.5244272, b: 0.27847025, a: 1}
     - _GlowColor: {r: 3.0943398, g: 0.5314449, b: 0, a: 1}
     - _MaskCoord: {r: 0, g: 0, b: 32767, a: 32767}
-    - _OutlineColor: {r: 1.319508, g: 0.6914569, b: 0, a: 1}
+    - _OutlineColor: {r: 0.86039764, g: 0.450871, b: 0, a: 1}
     - _ReflectFaceColor: {r: 0, g: 0, b: 0, a: 1}
     - _ReflectOutlineColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}

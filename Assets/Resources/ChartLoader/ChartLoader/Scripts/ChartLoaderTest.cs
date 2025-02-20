@@ -5,6 +5,8 @@ using Sirenix.OdinInspector; // Odin namespace
 using System.IO; //  System.IO 
 using UnityEngine.Networking; // For WebGL compatibility
 using System.Collections; // For IEnumerator
+using System;
+using UnityEngine.Events;
 
 public class ChartLoaderTest : MonoBehaviour
 {
@@ -89,6 +91,7 @@ public class ChartLoaderTest : MonoBehaviour
         get { return _bpmPrefab; }
         set { _bpmPrefab = value; }
     }
+    public static event Action OnBeat; // Event to notify when a beat occurs
     #endregion
 
     #region Audio & Camera Settings
@@ -384,35 +387,41 @@ public class ChartLoaderTest : MonoBehaviour
         }
     }
 
-    private void SpawnNotes(Note[] notes)
+ private void SpawnNotes(Note[] notes)
+{
+    Debug.Log($"Spawning {notes.Length} notes...");
+
+    foreach (Note note in notes)
     {
-        foreach (Note note in notes)
+        float z = (note.Seconds * Speed) + firstNoteZPosition; // Adjust Z with offset
+
+        for (int i = 0; i < SolidNotes.Length; i++)
         {
-            float z = (note.Seconds * Speed) + firstNoteZPosition; // Adjust Z with offset
-
-            for (int i = 0; i < SolidNotes.Length; i++)
+            if (note.ButtonIndexes[i])
             {
-                if (note.ButtonIndexes[i])
+                Transform noteTmp = Instantiate(SolidNotes[i], transform);
+                noteTmp.localPosition = new Vector3(i - 1.5f, 0, z);
+
+                NoteFactorSpawner spawner = noteTmp.GetComponent<NoteFactorSpawner>();
+                if (spawner != null)
                 {
-                    Transform noteTmp = Instantiate(SolidNotes[i], transform);
-                    noteTmp.localPosition = new Vector3(i - 1.5f, 0, z);
+                    double expectedHitTime = CameraMovement.SongStartTime + (noteTmp.localPosition.z / Speed);
+                    spawner.expectedHitTime = (float)expectedHitTime;
 
-                    NoteFactorSpawner spawner = noteTmp.GetComponent<NoteFactorSpawner>();
-                    if (spawner != null)
-                    {
-                        double expectedHitTime = CameraMovement.SongStartTime + (noteTmp.localPosition.z / Speed);
-                        spawner.expectedHitTime = (float)expectedHitTime;
+                    Debug.Log($"🎵 Beat Assigned to {noteTmp.name} | Expected Hit Time: {expectedHitTime}");
 
-                       // Debug.Log($"Assigned expected hit time: {spawner.expectedHitTime} for {noteTmp.name} at position {z}");
-                    }
-                    else
-                    {
-                        Debug.LogError($"NoteFactorSpawner not found on note {noteTmp.name}");
-                    }
+                    // 🚀 Trigger the Beat Immediately (No Coroutine Needed)
+                    OnBeat?.Invoke();
+                }
+                else
+                {
+                    Debug.LogError($"NoteFactorSpawner not found on note {noteTmp.name}");
                 }
             }
         }
     }
+}
+
 
 
 
@@ -476,6 +485,7 @@ public class ChartLoaderTest : MonoBehaviour
         Path = ""; // Reset the path
         _isChartInitialized = false;
     }
+  
     #endregion
 
 }

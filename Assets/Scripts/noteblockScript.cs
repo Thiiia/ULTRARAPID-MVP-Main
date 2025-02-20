@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 using TMPro;
+using MoreMountains.Feedbacks;
+
 
 public class NoteBlockScript : MonoBehaviour
 {
@@ -70,7 +72,7 @@ public class NoteBlockScript : MonoBehaviour
 
                 factorTreeMap[element] = factorValue; // Store the factor value
             }
-            
+
         }
 
         foreach (var element in factorTreeElements)
@@ -109,24 +111,24 @@ public class NoteBlockScript : MonoBehaviour
         */
     }
 
-  public void OnChildTriggerEnter(GameObject child, Collider other)
-{
-    if (other.CompareTag("Note"))
+    public void OnChildTriggerEnter(GameObject child, Collider other)
     {
-        Transform noteTransform = other.transform;
-        if (!activeNotes.Contains(noteTransform))
+        if (other.CompareTag("Note"))
         {
-            activeNotes.Add(noteTransform);
-
-            // Start the fade effect for the TextMeshPro component
-            TextMeshPro noteText = other.GetComponentInChildren<TextMeshPro>();
-            if (noteText != null)
+            Transform noteTransform = other.transform;
+            if (!activeNotes.Contains(noteTransform))
             {
-                noteText.DOFade(0.4f, 0.35f).SetEase(Ease.InOutQuad); // Fades to 50% alpha over 0.5s
+                activeNotes.Add(noteTransform);
+
+                // Start the fade effect for the TextMeshPro component
+                TextMeshPro noteText = other.GetComponentInChildren<TextMeshPro>();
+                if (noteText != null)
+                {
+                    noteText.DOFade(0.4f, 0.35f).SetEase(Ease.InOutQuad); // Fades to 50% alpha over 0.5s
+                }
             }
         }
     }
-}
     public void OnChildTriggerExit(GameObject child, Collider other)
     {
         if (other.CompareTag("Note"))
@@ -477,41 +479,41 @@ public class NoteBlockScript : MonoBehaviour
                 .Join(noteBlock.transform.DOScale(originalScale, 0.1f));
         }
     }
-void UpdateFactorTreeNode(Transform node)
-{
-    TextMeshProUGUI nodeText = node.GetComponent<TextMeshProUGUI>();
-    if (nodeText != null)
+    void UpdateFactorTreeNode(Transform node)
     {
-        if (nodeText.alpha == 0f) // If hidden, fade in and update text
+        TextMeshProUGUI nodeText = node.GetComponent<TextMeshProUGUI>();
+        if (nodeText != null)
         {
-            nodeText.alpha = 1f; // Ensure visibility
-            nodeText.DOFade(1f, 0.5f).SetEase(Ease.InOutQuad);
-        }
-
-        // Ensure the correct number is displayed
-        if (factorTreeMap.ContainsKey(node))
-        {
-            nodeText.text = factorTreeMap[node].ToString();
-        }
-
-        // Unlock next factors when full
-        if (factorTreeCounts[node] >= 3)
-        {
-            Debug.Log($"{node.name} is full! Revealing next factors.");
-
-            // Find TempFactorScript and call UnlockNextFactors
-            TempFactorScript tempFactorScript = FindObjectOfType<TempFactorScript>();
-            if (tempFactorScript != null)
+            if (nodeText.alpha == 0f) // If hidden, fade in and update text
             {
-                tempFactorScript.UnlockNextFactors(node.gameObject);
+                nodeText.alpha = 1f; // Ensure visibility
+                nodeText.DOFade(1f, 0.5f).SetEase(Ease.InOutQuad);
             }
-            else
+
+            // Ensure the correct number is displayed
+            if (factorTreeMap.ContainsKey(node))
             {
-                Debug.LogError("TempFactorScript not found in the scene!");
+                nodeText.text = factorTreeMap[node].ToString();
+            }
+
+            // Unlock next factors when full
+            if (factorTreeCounts[node] >= 3)
+            {
+                Debug.Log($"{node.name} is full! Revealing next factors.");
+
+                // Find TempFactorScript and call UnlockNextFactors
+                TempFactorScript tempFactorScript = FindObjectOfType<TempFactorScript>();
+                if (tempFactorScript != null)
+                {
+                    tempFactorScript.UnlockNextFactors(node.gameObject);
+                }
+                else
+                {
+                    Debug.LogError("TempFactorScript not found in the scene!");
+                }
             }
         }
     }
-}
 
 
 
@@ -535,7 +537,7 @@ void UpdateFactorTreeNode(Transform node)
 
     void TriggerNodeFullFeedback(Transform node)
     {
-        
+
         TextMeshProUGUI nodeText = node.GetComponent<TextMeshProUGUI>();
         if (nodeText != null && nodeText.alpha == 1f) // Only proceed if the text is visible
         {
@@ -579,12 +581,15 @@ void UpdateFactorTreeNode(Transform node)
             {
                 case "Perfect":
                     feedbackTextUI.color = Color.green;
+                    ShakeManager.Instance.TriggerShake("Medium"); // Stronger shake for perfect hits
                     break;
                 case "Good":
                     feedbackTextUI.color = Color.yellow;
+                    ShakeManager.Instance.TriggerShake("Light"); // Subtle shake for good hits
                     break;
                 case "Miss":
                     feedbackTextUI.color = Color.red;
+                    ShakeManager.Instance.TriggerShake("Heavy"); // Harder shake for punishment
                     break;
                 default:
                     feedbackTextUI.color = Color.white;

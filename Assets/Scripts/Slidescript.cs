@@ -16,7 +16,7 @@ public class Slidescript : MonoBehaviour
     private float _switchDuration = 1.6f;
     private int _currentSlide = -1;
 
-    private string nextSceneName = "MainGameplayScene"; 
+    private string nextSceneName = "SOE Scene"; 
 
     private IEnumerator Start()
     {

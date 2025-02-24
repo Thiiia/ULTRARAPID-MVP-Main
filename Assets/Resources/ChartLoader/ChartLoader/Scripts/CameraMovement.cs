@@ -3,34 +3,35 @@
 public class CameraMovement : MonoBehaviour
 {
     private float _speed;
-    private double songStartTime; // DSP time when the song starts
+    private double songStartTime; // DSP time when the song started (from AudioManager)
     public double SongStartTime => songStartTime;
 
-    private float songLength;    // Length of the song
-    private float initialZPosition; // Initial Z position of the camera
+    private float songLength;    // Duration of the song
+    private float initialZPosition; // Starting Z position for the camera
 
-
-    /// <summary>
-    /// The Camera Speed.
-    /// </summary>
     public float Speed
     {
         get { return _speed; }
         set { _speed = value; }
     }
 
-    /// <summary>
-    /// Initialize DSP time and song length.
-    /// </summary>
-    public void Initialize(double startTime, float length)
+    // Call this method to initialize the camera from the AudioManager values.
+    public void InitializeFromAudioManager()
     {
-        songStartTime = startTime;
-        songLength = length; // Assign song length
-        initialZPosition = transform.position.z; // Save the initial Z position
-        Debug.Log($"CameraMovement: Initialized with start time: {songStartTime}, song length: {songLength}, initial Z position: {initialZPosition}");
+        if (AudioManager.Instance != null)
+        {
+            songStartTime = AudioManager.Instance.dspStartTime;
+            songLength = AudioManager.Instance.songLength;
+            initialZPosition = transform.position.z;
+            Debug.Log($"CameraMovement: Initialized with start time: {songStartTime}, song length: {songLength}, initial Z position: {initialZPosition}");
+        }
+        else
+        {
+            Debug.LogError("CameraMovement: AudioManager instance not found!");
+        }
     }
 
-    // Update camera position based on DSP time
+    // Update camera position based on current DSP time
     void FixedUpdate()
     {
         if (songStartTime <= 0)
@@ -39,21 +40,17 @@ public class CameraMovement : MonoBehaviour
             return;
         }
 
-        // Calculate elapsed song time
+        // Calculate elapsed song time using DSP time
         double currentSongTime = AudioSettings.dspTime - songStartTime;
 
-        // Ensure we don't exceed the song length
+        // Clamp to song length if necessary
         if (currentSongTime > songLength)
         {
-            currentSongTime = songLength; // Clamp to the maximum duration
+            currentSongTime = songLength;
         }
 
-        // Calculate the camera's Z position based on song time and initial offset
+        // Calculate new Z position based on elapsed time, speed, and initial offset
         float calculatedZPosition = (float)(currentSongTime * Speed) + initialZPosition;
-
-        // Update camera position
         transform.position = new Vector3(transform.position.x, transform.position.y, calculatedZPosition);
-
-      
     }
 }

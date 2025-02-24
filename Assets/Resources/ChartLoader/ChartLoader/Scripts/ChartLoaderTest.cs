@@ -116,8 +116,27 @@ public class ChartLoaderTest : MonoBehaviour
     #endregion
 
     #region Start and Initialization
-    private void Start()
+   private void Start()
+{
+    if (AudioManager.Instance != null)
     {
+        // Use the persistent audio values.
+        songLength = AudioManager.Instance.songLength;
+        double dspTime = AudioManager.Instance.dspStartTime;
+        Debug.Log($"Song Length: {songLength} seconds (from AudioManager)");
+        
+        if (CameraMovement != null)
+        {
+            CameraMovement.InitializeFromAudioManager();
+        }
+        else
+        {
+            Debug.LogError("CameraMovement script is not assigned or found.");
+        }
+    }
+    else
+    {
+        // Fallback: if there's no AudioManager, use this AudioSource.
         if (Music.clip != null)
         {
             songLength = Music.clip.length;
@@ -133,15 +152,16 @@ public class ChartLoaderTest : MonoBehaviour
 
         if (CameraMovement != null)
         {
-            CameraMovement.Initialize(dspTime, songLength);
+            CameraMovement.InitializeFromAudioManager();
         }
         else
         {
             Debug.LogError("CameraMovement script is not assigned or found.");
         }
-
-        LoadAndInitializeChart();
     }
+
+    LoadAndInitializeChart();
+}
 
 
     public void LoadAndInitializeChart()
@@ -205,7 +225,7 @@ public class ChartLoaderTest : MonoBehaviour
             CameraMovement cameraMovement = GameObject.Find("Guitar Camera").GetComponent<CameraMovement>();
             if (cameraMovement != null)
             {
-                cameraMovement.Initialize(dspTime, Music.clip.length);
+                CameraMovement.InitializeFromAudioManager();
             }
             else
             {
@@ -309,7 +329,7 @@ public class ChartLoaderTest : MonoBehaviour
             // Adjust the camera's starting position
             if (CameraMovement != null)
             {
-                CameraMovement.Initialize(CameraMovement.SongStartTime, songLength);
+                CameraMovement.InitializeFromAudioManager();
                 CameraMovement.transform.position = new Vector3(
                     CameraMovement.transform.position.x,
                     CameraMovement.transform.position.y,

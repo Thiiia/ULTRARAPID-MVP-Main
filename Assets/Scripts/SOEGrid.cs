@@ -3,6 +3,7 @@ using UnityEngine;
 using Shapes;
 using TMPro;
 using DG.Tweening;
+using UnityEngine.SceneManagement;
 
 public class SOEGrid : MonoBehaviour
 {
@@ -11,17 +12,18 @@ public class SOEGrid : MonoBehaviour
     public SOEPrimeFinder primeFinder; // Assign in Inspector
     public int gridSize = 120; // Max number
     private Dictionary<int, GameObject> numberObjects = new Dictionary<int, GameObject>();
+    private string nextSceneName = "MainGameplayScene";
 
     void Start()
     {
         GenerateGrid();
-         ChartLoaderTest.OnBeat += PulseGrid; // Listen for beat events
+        // ChartLoaderTest.OnBeat += PulseGrid; // Listen for beat events
     }
 
     void GenerateGrid()
     {
         int cols = 12; // Number of columns
-        float spacing = 250f; 
+        float spacing = 250f;
 
         for (int i = 1; i <= gridSize; i++)
         {
@@ -43,32 +45,17 @@ public class SOEGrid : MonoBehaviour
             numberObjects[num.Key].GetComponent<ShapeRenderer>().Color = numbersToHighlight.Contains(num.Key) ? highlightColor : Color.white;
         }
     }
- public void PulseGrid()
-{
-    if (primeFinder == null)
+  
+    private void LoadNextScene()
     {
-        Debug.LogError("primeFinder is not assigned! Make sure SOEGrid has a reference to it.");
-        return;
+        SceneManager.LoadScene(nextSceneName);
     }
 
-    HashSet<int> activeNumbers = primeFinder.primes; // Get primes (or multiples)
-
-    foreach (var num in activeNumbers)
+    public void SkipToNextScene()
     {
-        if (numberObjects.ContainsKey(num))
-        {
-            ShapeRenderer shape = numberObjects[num].GetComponent<ShapeRenderer>();
-            if (shape != null)
-            {
-                Color originalColor = shape.Color; // Store original color
-
-                DOTween.To(() => shape.Color, x => shape.Color = x, Color.cyan, 0.1f)
-                    .SetLoops(2, LoopType.Yoyo)
-                    .OnComplete(() => shape.Color = originalColor); // Restore original color
-            }
-        }
+        StopAllCoroutines();
+        LoadNextScene();
     }
-}
 
 
 }

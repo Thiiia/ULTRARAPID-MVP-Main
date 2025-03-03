@@ -124,7 +124,7 @@ public class SOEGrid : MonoBehaviour
         {
             Debug.LogWarning("All primes have been placed. Stopping beat triggers.");
             beatsShouldTrigger = false;
-            refToSOEPopup.CloseSOEPopup();
+            StartCoroutine(ClosePopupWithDelay(3f));
             return;
         }
 
@@ -133,7 +133,7 @@ public class SOEGrid : MonoBehaviour
         {
             Debug.LogError("No more primes to animate.");
             beatsShouldTrigger = false;
-            refToSOEPopup.CloseSOEPopup();
+            StartCoroutine(ClosePopupWithDelay(3f));
             return;
         }
 
@@ -150,20 +150,14 @@ public class SOEGrid : MonoBehaviour
     private int GetNextPrime()
     {
         List<int> orderedPrimes = new List<int>(primeFinder.primes);
-        orderedPrimes.Sort(); // Ensure primes appear in order
+        orderedPrimes.Sort();
 
         if (primesPlaced < orderedPrimes.Count)
         {
-            return orderedPrimes[primesPlaced]; // Get next prime in sequence
+            return orderedPrimes[primesPlaced]; // Ensure next prime is correctly retrieved
         }
 
-        if (primesPlaced == totalNotes) // 
-        {
-            return -1; // No more primes available
-        }
-
-        Debug.LogWarning("Beats are still triggering after primes are placed.");
-        return -1;
+        return -1; // No more primes available
     }
 
 
@@ -193,7 +187,7 @@ public class SOEGrid : MonoBehaviour
         GameObject primeInstance = Instantiate(numberPrefab, spawnPoint);
         primeInstance.transform.SetParent(spawnPoint, false); // Keeps it in UI hierarchy
         primeInstance.transform.localScale = Vector3.one * 150; // large                                                                                                             
-                                                            
+
         RectTransform primeRect = primeInstance.GetComponent<RectTransform>(); // Place it at the center of the screen in UI space
         if (primeRect != null)
         {
@@ -252,6 +246,11 @@ public class SOEGrid : MonoBehaviour
 
         }
 
+    }
+    private IEnumerator ClosePopupWithDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        refToSOEPopup.CloseSOEPopup();
     }
 
 
@@ -322,17 +321,28 @@ public class SOEGrid : MonoBehaviour
     {
         foreach (var num in numberObjects)
         {
+            TextMeshPro text = num.Value.GetComponentInChildren<TextMeshPro>();
+
             if (primeFinder.primes.Contains(num.Key))
             {
-                num.Value.GetComponentInChildren<TextMeshPro>().text = num.Key.ToString();
-                num.Value.GetComponentInChildren<TextMeshPro>().color = Color.white;
+                text.text = num.Key.ToString();
+                text.color = Color.white;
+            }
+            else
+            {
+                // Fade out non-prime numbers over 1 second
+                text.DOFade(0f, 1.0f);
             }
         }
     }
+
     public void ShowPrimesText()
     {
         primesText.gameObject.SetActive(true);
         primesText.text = "Primes 0-49";
+
+        // Kill any existing animations before applying a new one
+        DOTween.Kill(primesText);
 
         // Start flashing effect
         Sequence flashSequence = DOTween.Sequence();

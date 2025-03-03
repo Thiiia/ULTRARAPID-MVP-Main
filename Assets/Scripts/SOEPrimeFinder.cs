@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class SOEPrimeFinder : MonoBehaviour
 {
-    public int maxValue = 120;
+    public int maxValue = 49;
     private HashSet<int> nonPrimes = new HashSet<int>();
     public HashSet<int> primes = new HashSet<int>();
 

@@ -16,6 +16,7 @@ public class SOEGrid : MonoBehaviour
     [Header("UI Elements")]
     public TextMeshProUGUI memoryEncodingText; // "Memory Encoding"
     public TextMeshProUGUI pressSpaceText; // "Press Space Bar to Continue"
+    public TextMeshProUGUI primesText;
 
     [Header("Timing")]
     public float flightDuration = 0.05f; // 50ms movement time for prime animations
@@ -181,64 +182,76 @@ public class SOEGrid : MonoBehaviour
             return;
         }
 
-        // Kill existing tweens on this object before applying new ones
+        // Kill any existing tweens
         DOTween.Kill(numberObjects[primeValue].transform);
-
-        // Spawn prime at the front of the screen
-        GameObject primeInstance = Instantiate(numberPrefab, spawnPoint.parent);
-        primeInstance.transform.position = spawnPoint.position;
 
         // Target position is the corresponding prime box
         Transform targetBox = numberObjects[primeValue].transform;
+        RectTransform targetRect = targetBox.GetComponent<RectTransform>();
 
-        // Animate flying effect
-        primeInstance.transform.DOMove(targetBox.position, flightDuration)
-            .SetEase(Ease.OutExpo)
-            .OnComplete(() =>
-            {
-                // Ensure the number appears in the right place
-                TextMeshPro text = targetBox.GetComponentInChildren<TextMeshPro>();
-                if (text != null)
-                {
-                    text.text = primeValue.ToString();
-                    text.color = Color.yellow; // Highlight the prime (optional)
-                    text.gameObject.SetActive(true); // Make sure the number is visible
-                }
+        //  large number at the center of the screen
+        GameObject primeInstance = Instantiate(numberPrefab, spawnPoint);
+        primeInstance.transform.SetParent(spawnPoint, false); // Keeps it in UI hierarchy
+        primeInstance.transform.localScale = Vector3.one * 150; // large                                                                                                             
+                                                            
+        RectTransform primeRect = primeInstance.GetComponent<RectTransform>(); // Place it at the center of the screen in UI space
+        if (primeRect != null)
+        {
+            primeRect.anchoredPosition3D = new Vector3(0, 0, -0.1f);
+            primeRect.localScale = Vector3.one * 250; // Large effect at the start
+        }
 
-                //Scale effect on landing
-                targetBox.DOScale(Vector3.one * 1.2f, 0.2f).SetEase(Ease.OutBounce).OnComplete(() =>
-                {
-                    targetBox.DOScale(Vector3.one, 0.1f);
-                });
-
-                // Destroy the moving prime after landing
-                if (primeInstance != null && primeInstance.scene.IsValid())
-                {
-                    Destroy(primeInstance); // ✅ Destroys only instantiated objects
-                }
-                else
-                {
-                    Debug.LogWarning($"Tried to destroy {primeValue} but it wasn't instantiated.");
-                }
+        // Set number text
+        TextMeshPro text = primeInstance.GetComponentInChildren<TextMeshPro>();
+        if (text != null)
+        {
+            text.text = primeValue.ToString();
+            text.color = Color.black;
+        }
 
 
-                // Update primesPlaced to move to the next prime
-                primesPlaced++;
-                Debug.Log($"✅ Prime {primeValue} placed. primesPlaced = {primesPlaced}");
-
-                // Check if all primes have been placed and close the popup
-                if (primesPlaced >= totalNotes)
-                {
 
 
-                    refToSOEPopup.CloseSOEPopup();
-                }
-                if (primesPlaced == 15)
-                {
-                    ShowAllPrimes(); // Show all primes in the grid
-                    ShowPrimesText(); // Show "Primes 0-49"
-                }
-            });
+        if (targetRect != null && primeRect != null)
+        {
+            primeRect.DOAnchorPos3D(
+    new Vector3(targetRect.anchoredPosition.x, targetRect.anchoredPosition.y, -0.1f), flightDuration)
+    .SetEase(Ease.OutExpo)
+    .OnComplete(() =>
+    {
+        // Ensure the number appears in the right place
+        TextMeshPro text = targetBox.GetComponentInChildren<TextMeshPro>();
+        if (text != null)
+        {
+            text.text = primeValue.ToString();
+            text.color = Color.yellow;
+            text.gameObject.SetActive(true);
+        }
+
+        //  Shrink Effect AFTER reaching the position
+        primeInstance.transform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBounce); //  Shrinks smoothly
+
+        // Destroy the flying prime after landing
+        Destroy(primeInstance, 0.5f);
+
+        // Update primesPlaced
+        primesPlaced++;
+        Debug.Log($"Prime {primeValue} placed. primesPlaced = {primesPlaced}");
+
+        if (primesPlaced >= totalNotes)
+        {
+            refToSOEPopup.CloseSOEPopup();
+        }
+
+        if (primesPlaced == 15)
+        {
+            ShowAllPrimes();
+            ShowPrimesText();
+        }
+    });
+
+        }
+
     }
 
 
@@ -246,17 +259,17 @@ public class SOEGrid : MonoBehaviour
     {
         ShowPromptText();
 
-        // ✅ Kill existing tweens before starting a new one
+        // Kill existing tweens before starting new ones
         DOTween.Kill(memoryEncodingText);
         DOTween.Kill(pressSpaceText);
 
-        // Create a flashing effect for "Memory Encoding"
+        // Flash effect for "Memory Encoding"
         Sequence memorySequence = DOTween.Sequence();
         memorySequence.Append(memoryEncodingText.DOFade(0f, 0.5f))
                       .Append(memoryEncodingText.DOFade(1f, 0.5f))
                       .SetLoops(-1);
 
-        // Create a flashing effect for "Press Space"
+        // Flash effect for "Press Space"
         Sequence pressSequence = DOTween.Sequence();
         pressSequence.Append(pressSpaceText.DOFade(0f, 0.5f))
                      .Append(pressSpaceText.DOFade(1f, 0.5f))
@@ -264,7 +277,6 @@ public class SOEGrid : MonoBehaviour
 
         waitingForSpace = true;
 
-        // Wait for the player to press Space Bar
         while (waitingForSpace)
         {
             if (Input.GetKeyDown(KeyCode.Space))
@@ -274,7 +286,7 @@ public class SOEGrid : MonoBehaviour
             yield return null;
         }
 
-        // Kill Tweens to prevent stacking
+        // Kill Tweens once Space is pressed
         memorySequence.Kill();
         pressSequence.Kill();
         DOTween.Kill(memoryEncodingText);
@@ -283,7 +295,6 @@ public class SOEGrid : MonoBehaviour
         HidePromptText();
     }
 
-
     /// <summary>
     /// Shows the "Memory Encoding" and "Press Space to Continue" prompts.
     /// </summary>
@@ -291,7 +302,12 @@ public class SOEGrid : MonoBehaviour
     {
         memoryEncodingText.gameObject.SetActive(true);
         pressSpaceText.gameObject.SetActive(true);
+
+        // Ensure text is fully visible when shown
+        memoryEncodingText.color = new Color(memoryEncodingText.color.r, memoryEncodingText.color.g, memoryEncodingText.color.b, 1);
+        pressSpaceText.color = new Color(pressSpaceText.color.r, pressSpaceText.color.g, pressSpaceText.color.b, 1);
     }
+
 
     /// <summary>
     /// Hides the "Memory Encoding" and "Press Space to Continue" prompts.
@@ -315,8 +331,14 @@ public class SOEGrid : MonoBehaviour
     }
     public void ShowPrimesText()
     {
-        pressSpaceText.gameObject.SetActive(true);
-        pressSpaceText.text = "Primes 0-49";
+        primesText.gameObject.SetActive(true);
+        primesText.text = "Primes 0-49";
+
+        // Start flashing effect
+        Sequence flashSequence = DOTween.Sequence();
+        flashSequence.Append(primesText.DOFade(0f, 0.5f))
+                     .Append(primesText.DOFade(1f, 0.5f))
+                     .SetLoops(-1);
     }
     public void ResetPrimes()
     {

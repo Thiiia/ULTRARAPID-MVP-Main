@@ -410,6 +410,7 @@ public class ChartLoaderTest : MonoBehaviour
  private void SpawnNotes(Note[] notes)
 {
     Debug.Log($"Spawning {notes.Length} notes...");
+    
 
     foreach (Note note in notes)
     {
@@ -430,8 +431,7 @@ public class ChartLoaderTest : MonoBehaviour
 
                     Debug.Log($"🎵 Beat Assigned to {noteTmp.name} | Expected Hit Time: {expectedHitTime}");
 
-                    // 🚀 Trigger the Beat Immediately (No Coroutine Needed)
-                    OnBeat?.Invoke();
+                    StartCoroutine(TriggerBeatOnTime(note.Seconds));
                 }
                 else
                 {
@@ -454,7 +454,7 @@ public class ChartLoaderTest : MonoBehaviour
     {
         CameraMovement.Speed = Speed;
         CameraMovement.enabled = true;
-        PlayMusic();
+        
     }
 
     private void PlayMusic() => Music.Play();
@@ -479,6 +479,22 @@ public class ChartLoaderTest : MonoBehaviour
             renderer.color = new Color(renderer.color.r + 0.75f, renderer.color.g + 0.75f, renderer.color.b + 0.75f);
         }
     }
+
+    private IEnumerator TriggerBeatOnTime(float noteTime)
+{
+    float startTime = (float)AudioSettings.dspTime;
+    float delay = noteTime - (float)(AudioSettings.dspTime - startTime);
+
+    if (delay > 0)
+        yield return new WaitForSeconds(delay);
+
+    if (OnBeat != null)
+    {
+        Debug.Log($"🎵 Beat Triggered at {noteTime}");
+        OnBeat.Invoke(); // ✅ Fire beat event dynamically
+    }
+}
+
 
     private void SetHOPO(Transform note)
     {

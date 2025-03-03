@@ -4,7 +4,7 @@ public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance;
 
-    public AudioSource musicSource;  // Assign your AudioSource via the Inspector
+    public AudioSource musicSource;  // Assign AudioSource via the Inspector
     public double dspStartTime { get; private set; }
     public float songLength;
 

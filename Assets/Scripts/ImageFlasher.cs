@@ -1,41 +1,77 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using DG.Tweening;
+using UnityEngine.SceneManagement;
 
 public class ImageFlasher : MonoBehaviour
 {
-    public Image firstImage;
-    public Image secondImage;
-    
-    [Tooltip("Flash intervals in milliseconds (50, 75, 100)")]
-    public int flashIntervalInMS = 50; // Default to 50ms
+    [Header("Image Settings")]
+    [Tooltip("UI Image that displays the deer head")]
+    public Image deerHeadImage;
+    [Tooltip("First deer head sprite")]
+    public Sprite imageA;
+    [Tooltip("Second deer head sprite")]
+    public Sprite imageB;
 
-    private void Start()
+    [Header("Flash Timing Settings")]
+    [Tooltip("Starting flash interval in seconds (e.g., 0.1 for 100ms)")]
+    public float startInterval = 0.1f;
+    [Tooltip("Target flash interval in seconds (e.g., 0.025 for 25ms)")]
+    public float targetInterval = 0.025f;
+    [Tooltip("Total duration of the flash sequence (in seconds)")]
+    public float totalDuration = 3f;
+
+    private float flashInterval;
+    private bool isFlashing = false;
+
+    // Static flag to ensure this only runs once
+    private static bool hasRunOnce = false;
+
+    void Start()
     {
-        StartCoroutine(FlashImages());
-    }
-
-    private IEnumerator FlashImages()
-    {
-        float interval = flashIntervalInMS / 1000f; // Convert ms to seconds
-
-        while (true)
+        if (!hasRunOnce)
         {
-            firstImage.enabled = true;
-            secondImage.enabled = false;
-            yield return new WaitForSeconds(interval);
-
-            firstImage.enabled = false;
-            secondImage.enabled = true;
-            yield return new WaitForSeconds(interval);
+            hasRunOnce = true;
+            StartFlashSequence();
+        }
+        else
+        {
+            // If already run, disable the UI image immediately
+            deerHeadImage.gameObject.SetActive(false);
         }
     }
 
-    // Change the interval dynamically
-    public void SetFlashInterval(int newIntervalMs)
+    /// <summary>
+    /// Starts the deer head flash sequence.
+    /// </summary>
+    public void StartFlashSequence()
     {
-        flashIntervalInMS = newIntervalMs;
-        StopAllCoroutines();
-        StartCoroutine(FlashImages());
+        flashInterval = startInterval;
+        isFlashing = true;
+        StartCoroutine(FlashCoroutine());
+
+        // Tween the flashInterval from startInterval to targetInterval over the total duration.
+        DOTween.To(() => flashInterval, x => flashInterval = x, targetInterval, totalDuration)
+            .SetEase(Ease.Linear)
+            .OnComplete(() => {
+                isFlashing = false;
+                deerHeadImage.gameObject.SetActive(false);
+                SceneManager.LoadScene("MainGameplayScene");
+            });
+    }
+
+    /// <summary>
+    /// Alternates the deer head image based on the current flash interval.
+    /// </summary>
+    private IEnumerator FlashCoroutine()
+    {
+        while (isFlashing)
+        {
+            deerHeadImage.sprite = imageA;
+            yield return new WaitForSeconds(flashInterval);
+            deerHeadImage.sprite = imageB;
+            yield return new WaitForSeconds(flashInterval);
+        }
     }
 }

@@ -1,47 +1,71 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
+using MoreMountains.Feedbacks;
 
 public class Slidescript : MonoBehaviour
 {
     [SerializeField] private Image _fadeSlide;
     [SerializeField] private Transform _slideParent;
     [SerializeField] private GameObject _slidePrefab;
+    [SerializeField] private MMF_Player pulseFeedback;
+    
     private Button skipButton;
 
     private List<GameObject> _slides = new List<GameObject>();
-    private float _fadeDuration = 0.75f;
-    private float _switchDuration = 1.6f;
+    private float _fadeDuration = 0.2f;
     private int _currentSlide = -1;
 
-    private string nextSceneName = "SOE Scene"; 
+    private AudioManager _audioManager;
+
+   
+    private static bool hasPlayedFirstSlides = false;
+
+    // Slide timings
+    private readonly double[] _slideTimings = 
+    {
+        0.00, // Slide 0: Ultra Rapid Logo
+        1.00, // Slide 1
+        7.00, // Slide 2
+        13.00, // Slide 3
+        18.00, // Slide 4
+        23.00, // Slide 5
+
+        112.00, // Return at 1:52
+        118.00, // Slide 7 at 1:58
+        122.00  // Slide 8 at 2:02
+    };
 
     private IEnumerator Start()
     {
-        LoadSlidesFromResources();
+        _audioManager = AudioManager.Instance;
+        if (_audioManager == null)
+        {
+            Debug.LogError("Slidescript: No AudioManager found!");
+            yield break;
+        }
 
+        // If slides have already played, wait for the final slides instead
+        if (hasPlayedFirstSlides)
+        {
+            Debug.Log("Skipping initial slides, waiting for final slideshow...");
+            yield return StartCoroutine(WaitForFinalSlides());
+            yield break;
+        }
+
+        LoadSlidesFromResources();
         if (_slides.Count == 0) yield break;
 
         _fadeSlide.color = Color.black;
 
-        //click to skip the slideshow
         if (skipButton != null)
         {
             skipButton.onClick.AddListener(SkipToNextScene);
         }
 
-        while (_currentSlide < _slides.Count - 1) // Loop until last slide
-        {
-            _currentSlide++;
-            StartCoroutine(SlideTransition());
-            yield return new WaitForSeconds(_switchDuration);
-        }
-
-        // Load the next scene after the last slide
-        yield return new WaitForSeconds(0.1f); // Short delay
-        LoadNextScene();
+        yield return StartCoroutine(PlaySlides());
     }
 
     private void LoadSlidesFromResources()
@@ -55,6 +79,49 @@ public class Slidescript : MonoBehaviour
             newSlide.SetActive(false);
             _slides.Add(newSlide);
         }
+    }
+
+    private IEnumerator PlaySlides()
+    {
+        for (int i = 0; i < _slideTimings.Length; i++)
+        {
+            yield return new WaitUntil(() => _audioManager.GetCurrentSongTime() >= _slideTimings[i]);
+
+            if (i == 0 && pulseFeedback != null)
+            {
+                pulseFeedback.PlayFeedbacks();
+            }
+             if (i == 6 && pulseFeedback != null)
+            {
+                pulseFeedback.PlayFeedbacks();
+                
+            }
+            if (i == 7 && pulseFeedback != null)
+            {
+                pulseFeedback.PlayFeedbacks();
+            }
+            if (i == 8 && pulseFeedback != null)
+            {
+                pulseFeedback.PlayFeedbacks();
+            }
+            if (i == 9 && pulseFeedback != null)
+            {
+                pulseFeedback.PlayFeedbacks();
+            }
+
+
+            _currentSlide = i;
+            StartCoroutine(SlideTransition());
+        }
+
+        hasPlayedFirstSlides = true; // don't replay
+    }
+
+    private IEnumerator WaitForFinalSlides()
+    {
+        yield return new WaitUntil(() => _audioManager.GetCurrentSongTime() >= _slideTimings[6]);
+
+        StartCoroutine(PlaySlides());
     }
 
     private IEnumerator SlideTransition()
@@ -82,14 +149,18 @@ public class Slidescript : MonoBehaviour
         }
     }
 
-    private void LoadNextScene()
-    {
-        SceneManager.LoadScene(nextSceneName);
-    }
+   public void SkipToNextScene()
+{
+    StopAllCoroutines(); // Stop slides from progressing
 
-    public void SkipToNextScene()
+    if (TimelineManager.Instance != null)
     {
-        StopAllCoroutines(); // Stop slideshow
-        LoadNextScene();
+        TimelineManager.Instance.SkipToGameplay(); // Tell TimelineManager to switch to MainGameplayScene
     }
+    else
+    {
+        Debug.LogWarning("Skip button pressed, but TimelineManager is missing!");
+    }
+}
+
 }

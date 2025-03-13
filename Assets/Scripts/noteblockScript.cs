@@ -205,6 +205,7 @@ public class NoteBlockScript : MonoBehaviour
             // Determine the hit type based on timing thresholds
             if (timingDifference <= perfectThreshold)
             {
+                
                 DisplayFeedback("Perfect");
                 InteractWithNoteInTrigger(note.GetComponent<Collider>());
             }
@@ -566,6 +567,10 @@ public class NoteBlockScript : MonoBehaviour
 
     void DisplayFeedback(string feedbackType)
     {
+          if (ScoreManagerScript.Instance != null)
+    {
+        ScoreManagerScript.Instance.RegisterNoteHit(feedbackType);
+    }
         if (feedbackTextUI != null)
         {
             // Kill any existing tweens to prevent overlapping animations

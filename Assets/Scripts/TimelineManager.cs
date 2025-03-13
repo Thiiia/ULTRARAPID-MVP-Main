@@ -13,6 +13,7 @@ public class TimelineManager : MonoBehaviour
     private bool finalTransitioned = false;
     private bool triggeredSOE = false;
     private bool triggeredInstructions = false; // Track if the 0:46 popup has been shown
+    private bool welcometohighscore = false;
 
     private const double SWITCH_TO_GAMEPLAY_TIME = 29.0;
     private const double INSTRUCTIONS_TIME = 45.0; // Show popup at 0:46
@@ -20,6 +21,8 @@ public class TimelineManager : MonoBehaviour
     private const double SOE_TRIGGER_TIME = 84.0;
     private const double RETURN_TO_SLIDESHOW_TIME = 112.0;
     private const double FINAL_SCENE_TRANSITION = 128.0;
+    
+    private const double HIGHSCORE = 158.0;
 
     void Awake()
     {
@@ -89,15 +92,21 @@ public class TimelineManager : MonoBehaviour
         if (currentTime >= FINAL_SCENE_TRANSITION && !finalTransitioned)
         {
             finalTransitioned = true;
-            Debug.Log("Final transition to MainGameplayScene at 2:02");
+            Debug.Log("Final transition to MainGameplayScene at 2:08");
             StartCoroutine(TransitionToScene("MainGameplayScene"));
+        }
+          if (currentTime >= HIGHSCORE && !welcometohighscore)
+        {
+            welcometohighscore = true;
+            Debug.Log("transition to highscore scene at 2:38");
+            StartCoroutine(TransitionToScene("Highscore"));
         }
     }
 
     private IEnumerator TransitionToScene(string sceneName)
     {
         Debug.Log($"TimelineManager: Transitioning to {sceneName}");
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0f);
         SceneManager.LoadScene(sceneName);
     }
 

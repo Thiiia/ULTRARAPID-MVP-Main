@@ -357,13 +357,13 @@ public class SOEGrid : MonoBehaviour
     {
         Debug.Log("Starting SOE Flashing Sequence.");
 
-        // Ensure "Primes 0-49" text is visible initially
+        
         primesText.gameObject.SetActive(true);
         primesText.text = "Primes 0-49";
 
         ShowPrimesText();
 
-        //  Ensure it stays visible at the end
+        
         primesText.DOKill();
         primesText.color = new Color(primesText.color.r, primesText.color.g, primesText.color.b, 1);
 

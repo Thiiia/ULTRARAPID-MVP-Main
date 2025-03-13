@@ -266,16 +266,16 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 384014167}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -1}
-  m_LocalScale: {x: 4.2938848, y: 3.5049257, z: 3.5049257}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 4.2938848, y: 3.5049255, z: 3.5049255}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2071605895}
   m_Father: {fileID: 1273079060}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 603, y: -458}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: -350, y: 50}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &384014169
@@ -300,10 +300,10 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 0.022012413, b: 0.8470323, a: 0}
-    m_HighlightedColor: {r: 0.69182384, g: 0.28526634, b: 0.25453886, a: 0.44705883}
-    m_PressedColor: {r: 0.8050314, g: 0.47529915, b: 0.088603996, a: 0.60784316}
+    m_HighlightedColor: {r: 0.69182384, g: 0.28526634, b: 0.25453886, a: 0.18431373}
+    m_PressedColor: {r: 0.8050314, g: 0.47529915, b: 0.088603996, a: 0.18431373}
     m_SelectedColor: {r: 0.6651315, g: 0.09119487, b: 1, a: 0}
-    m_DisabledColor: {r: 0.72327036, g: 0.12156668, b: 0, a: 0.5019608}
+    m_DisabledColor: {r: 0.72327036, g: 0.12156668, b: 0, a: 0.23529412}
     m_ColorMultiplier: 2.6
     m_FadeDuration: 0.35
   m_SpriteState:
@@ -354,9 +354,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
-  m_PreserveAspect: 0
+  m_Sprite: {fileID: 21300000, guid: e3ed3b4ac91c66f45bad7f282bc99fd1, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -1383,10 +1383,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1273079060}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 1920, y: 1080}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1804831243
 MonoBehaviour:
@@ -1408,7 +1408,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: d7acfca89bfae46468de366bb29203d1, type: 3}
+  m_Sprite: {fileID: 21300000, guid: b547c110ec5adf44c96a594d334f3e84, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1629,17 +1629,21 @@ PrefabInstance:
       propertyPath: m_Name
       value: Audio Manager
       objectReference: {fileID: 0}
+    - target: {fileID: 6713552934529540468, guid: 447a3b1fc09b418409fe443b22430db2, type: 3}
+      propertyPath: m_Camera
+      value: 
+      objectReference: {fileID: 655584141}
     - target: {fileID: 7147866940498628038, guid: 447a3b1fc09b418409fe443b22430db2, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -5.5935693
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7147866940498628038, guid: 447a3b1fc09b418409fe443b22430db2, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.2830126
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7147866940498628038, guid: 447a3b1fc09b418409fe443b22430db2, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -2.8203793
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7147866940498628038, guid: 447a3b1fc09b418409fe443b22430db2, type: 3}
       propertyPath: m_LocalRotation.w

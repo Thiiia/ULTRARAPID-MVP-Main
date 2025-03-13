@@ -2,7 +2,6 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
-using UnityEngine.SceneManagement;
 
 public class ImageFlasher : MonoBehaviour
 {
@@ -21,12 +20,14 @@ public class ImageFlasher : MonoBehaviour
     public float targetInterval = 0.025f;
     [Tooltip("Total duration of the flash sequence (in seconds)")]
     public float totalDuration = 3f;
+    [Tooltip("Duration for fading out after the flash sequence (in seconds)")]
+    public float fadeDuration = 1f;
 
     private float flashInterval;
     private bool isFlashing = false;
 
     // Static flag to ensure this only runs once
-    private static bool hasRunOnce = false;
+    public static bool hasRunOnce = false;
 
     void Start()
     {
@@ -56,8 +57,7 @@ public class ImageFlasher : MonoBehaviour
             .SetEase(Ease.Linear)
             .OnComplete(() => {
                 isFlashing = false;
-                deerHeadImage.gameObject.SetActive(false);
-                SceneManager.LoadScene("MainGameplayScene");
+                StartFadeOut(); // Start fading out
             });
     }
 
@@ -73,5 +73,17 @@ public class ImageFlasher : MonoBehaviour
             deerHeadImage.sprite = imageB;
             yield return new WaitForSeconds(flashInterval);
         }
+    }
+
+    /// <summary>
+    /// Fades the deer head out smoothly before disabling it.
+    /// </summary>
+    private void StartFadeOut()
+    {
+        deerHeadImage.DOFade(0f, fadeDuration)
+            .SetEase(Ease.OutCubic)
+            .OnComplete(() => {
+                deerHeadImage.gameObject.SetActive(false); // Disable after fading out
+            });
     }
 }

@@ -9,8 +9,6 @@ public class SOEUI : MonoBehaviour
 
     void Start()
     {
-        primeButton.onClick.AddListener(() => soeGrid.HighlightNumbers(primeFinder.primes, Color.yellow));
-        multiplesOf2Button.onClick.AddListener(() => soeGrid.HighlightNumbers(primeFinder.GetMultiples(2), Color.green));
-        multiplesOf3Button.onClick.AddListener(() => soeGrid.HighlightNumbers(primeFinder.GetMultiples(3), Color.blue));
+   
     }
 }

@@ -4,6 +4,7 @@ using UnityEngine;
 using TMPro;
 using DG.Tweening;
 using UnityEngine.SceneManagement;
+using UnityEngine.Rendering;
 
 public class SOEGrid : MonoBehaviour
 {
@@ -19,46 +20,80 @@ public class SOEGrid : MonoBehaviour
     public TextMeshProUGUI primesText;
 
     [Header("Timing")]
-    public float flightDuration = 0.05f; // 50ms movement time for prime animations
+    public float flightDuration = 0.05f; //  movement time for prime animations
     private Dictionary<int, GameObject> numberObjects = new Dictionary<int, GameObject>(); // Tracks prime positions
+    private Queue<int> primeQueue = new Queue<int>(); // Queue for primes
+    private bool isAnimating = false;
+    public bool firstTimePlaying;
 
-    private int primesPlaced = 0; // Keeps track of how many primes have been placed
-    private int totalNotes = 21; // The total number of notes triggering prime animations
+    private int primesPlaced = 0; // Keeps track of how many primes have been placeds
     private bool waitingForSpace = false; // Controls when the player can proceed
     SOEPopup refToSOEPopup;
+    public Color refToColor;
 
+    public bool isSOEActive = false; // Track if SOE is currently running
+
+    void Awake()
+    {
+       
+    }
     private void Start()
     {
         GenerateGrid();
-        HidePromptText();
+        gridParent.gameObject.SetActive(false);
+        if (!ImageFlasher.hasRunOnce)
+        {
+            Invoke(nameof(WaitTillNoDeer), 6.1f);
+            firstTimePlaying = false;
+        }
+        else
+        {
+            Invoke(nameof(WaitTillNoDeer), 0f);
+        }
+
+
 
         refToSOEPopup = GameObject.Find("SOE_Popup").GetComponentInChildren<SOEPopup>();
+
+        // Ensure spawnPoint is centered in the UI
+        RectTransform spawnRect = spawnPoint.GetComponent<RectTransform>();
+        if (spawnRect != null)
+        {
+            spawnRect.anchoredPosition = Vector2.zero; // Centers in the middle of the screen
+        }
+
         ChartLoaderTest.OnBeat += OnBeatTriggered;
+        ResetPrimes();
+        StartCoroutine(ShowMemoryEncodingPrompt());
+
     }
 
     private void OnDestroy()
     {
-        // Unsubscribe to prevent memory leaks
+        // Fuck a memory leak
         ChartLoaderTest.OnBeat -= OnBeatTriggered;
+    }
+    void WaitTillNoDeer()
+    {
+        gridParent.gameObject.SetActive(true);
     }
 
     /// <summary>
     /// Generates the SOE Prime Grid 
-    /// Ensures correct column & row positioning based on the sieve.
     /// </summary>
     /// <summary>
     /// Generates the SOE Prime Grid (numbers 0-49 only).
-    /// Ensures correct column & row positioning.
     /// </summary>
-    private void GenerateGrid()
+    public void GenerateGrid()
     {
+
         int cols = 10;
         float spacingX = 200f; // Horizontal spacing
         float spacingY = -155f; // Vertical spacing (negative moves downward)
 
         HashSet<int> primes = primeFinder.primes; // Get prime numbers
 
-        for (int i = 0; i <= 49; i++) // E
+        for (int i = 0; i <= 49; i++) // 
         {
             GameObject numObj = Instantiate(numberPrefab, gridParent);
             numObj.name = "Number_" + i;
@@ -74,10 +109,10 @@ public class SOEGrid : MonoBehaviour
 
             numberObjects[i] = numObj; // Store reference to each number slot
 
-            // Gray out non-primes (optional: make them semi-transparent)
+            // Gray out non-primes 
             if (!primes.Contains(i))
             {
-                text.color = new Color(1f, 1f, 1f, 0.5f); // Dim non-prime numbers
+                text.color = refToColor; // Dim non-prime numbers
             }
             else
             {
@@ -86,6 +121,27 @@ public class SOEGrid : MonoBehaviour
 
 
         }
+    }
+    public void StartSOESequence()
+    {
+        if (isSOEActive) return; // Avoid multiple triggers
+        isSOEActive = true;
+        if (firstTimePlaying)
+        {
+            firstTimePlaying = false;
+            StartCoroutine(AnimatePrimesSequentially());
+
+        }
+        else
+        {
+            StartCoroutine(AnimatePrimesSequentially()); // Subsequent times play once
+        }
+
+
+        refToSOEPopup.ToggleSOEPopup(); // Open Popup
+        ResetPrimes();
+        StartCoroutine(ShowMemoryEncodingPrompt());
+        StartCoroutine(ClosePopupWithDelay(12f));
     }
 
 
@@ -114,34 +170,45 @@ public class SOEGrid : MonoBehaviour
     /// </summary>
     private bool beatsShouldTrigger = true;
 
+    private bool hasStartedSOE = false; // Prevents early triggering
+
     private void OnBeatTriggered()
     {
-        if (!beatsShouldTrigger) return;
-
-        Debug.Log($"OnBeatTriggered() called! primesPlaced = {primesPlaced}, totalNotes = {totalNotes}");
-
-        if (primesPlaced >= totalNotes)
-        {
-            Debug.LogWarning("All primes have been placed. Stopping beat triggers.");
-            beatsShouldTrigger = false;
-            StartCoroutine(ClosePopupWithDelay(3f));
-            return;
-        }
+        if (!beatsShouldTrigger || isAnimating) return;
 
         int primeToAnimate = GetNextPrime();
         if (primeToAnimate == -1)
         {
-            Debug.LogError("No more primes to animate.");
             beatsShouldTrigger = false;
-            StartCoroutine(ClosePopupWithDelay(3f));
+            StartCoroutine(ClosePopupWithDelay(1.25f));
             return;
         }
 
-        Debug.Log($"Beat Triggered! Moving Prime: {primeToAnimate}");
-        AnimatePrimeIntoBox(primeToAnimate);
+        if (!primeQueue.Contains(primeToAnimate))
+        {
+            primeQueue.Enqueue(primeToAnimate);
+        }
+
+        if (!isAnimating)
+            isAnimating = true;
+        StartCoroutine(AnimatePrimesSequentially());
     }
 
 
+
+    private IEnumerator AnimatePrimesSequentially()
+    {
+
+        isAnimating = true;
+
+        while (primeQueue.Count > 0)
+        {
+            int primeValue = primeQueue.Dequeue();
+            yield return StartCoroutine(AnimatePrimeIntoBox(primeValue));
+        }
+
+        isAnimating = false;
+    }
 
     /// <summary>
     /// Finds the next prime number that should be animated.
@@ -154,105 +221,191 @@ public class SOEGrid : MonoBehaviour
 
         if (primesPlaced < orderedPrimes.Count)
         {
-            return orderedPrimes[primesPlaced]; // Ensure next prime is correctly retrieved
+            int nextPrime = orderedPrimes[primesPlaced];
+            if (primeQueue.Contains(nextPrime)) return -1;
+            return nextPrime;
         }
 
-        return -1; // No more primes available
+        return -1;
     }
 
 
-
-    /// <summary>
-    /// Animates a prime number from the front of the screen into its grid box.
-    /// </summary>
-    /// <summary>
-    /// Animates a prime number from the front of the screen into its grid box.
-    /// </summary>
-    private void AnimatePrimeIntoBox(int primeValue)
+    private IEnumerator AnimatePrimeIntoBox(int primeValue)
     {
         if (!numberObjects.ContainsKey(primeValue))
         {
             Debug.LogError($"SOEGrid: No grid slot found for prime {primeValue} (0-49).");
-            return;
+            yield break;
         }
 
-        // Kill any existing tweens
-        DOTween.Kill(numberObjects[primeValue].transform);
+        if (spawnPoint == null)
+        {
+            Debug.LogError("PrimeSpawnPoint is not assigned!");
+            yield break;
+        }
 
-        // Target position is the corresponding prime box
-        Transform targetBox = numberObjects[primeValue].transform;
-        RectTransform targetRect = targetBox.GetComponent<RectTransform>();
+        // Get the target box
+        RectTransform targetRect = numberObjects[primeValue].GetComponent<RectTransform>();
+        if (targetRect == null)
+        {
+            Debug.LogError($"Target Box {primeValue} does not have a RectTransform!");
+            yield break;
+        }
 
-        //  large number at the center of the screen
+        //  Destroy any lingering primes 
+        foreach (Transform child in spawnPoint)
+        {
+            Destroy(child.gameObject);
+        }
+
+        // Spawn the new prime
+        float zOffset = -0.2f * primesPlaced;
+
         GameObject primeInstance = Instantiate(numberPrefab, spawnPoint);
-        primeInstance.transform.SetParent(spawnPoint, false); // Keeps it in UI hierarchy
-        primeInstance.transform.localScale = Vector3.one * 150; // large                                                                                                             
+        primeInstance.transform.SetParent(spawnPoint, false);
+        RectTransform primeRect = primeInstance.GetComponent<RectTransform>();
 
-        RectTransform primeRect = primeInstance.GetComponent<RectTransform>(); // Place it at the center of the screen in UI space
-        if (primeRect != null)
+
+        primeRect.anchoredPosition = Vector2.zero; // Centered
+        primeRect.localScale = Vector3.one * 575;
+        Vector3 currentPosition = primeRect.localPosition;
+        primeRect.localPosition = new Vector3(currentPosition.x, currentPosition.y, zOffset);
+
+        
+        TextMeshPro primeText = primeInstance.GetComponentInChildren<TextMeshPro>();
+        if (primeText != null)
         {
-            primeRect.anchoredPosition3D = new Vector3(0, 0, -0.1f);
-            primeRect.localScale = Vector3.one * 250; // Large effect at the start
+            primeText.text = primeValue.ToString();
+            primeText.color = new Color(255 / 255, 219 / 255, 237 / 255);
+            primeText.gameObject.SetActive(true);
+            primeText.alpha = 1f;
+        }
+        else
+        {
+            Debug.LogError($"TextMeshPro not found inside the spawned prime prefab!");
         }
 
-        // Set number text
-        TextMeshPro text = primeInstance.GetComponentInChildren<TextMeshPro>();
-        if (text != null)
+
+        int nextPrime = GetNextPrime();
+        GameObject nextPrimeInstance = null;
+        if (nextPrime != -1)
         {
-            text.text = primeValue.ToString();
-            text.color = Color.black;
+            nextPrimeInstance = Instantiate(numberPrefab, spawnPoint);
+            nextPrimeInstance.transform.SetParent(spawnPoint, false);
+            RectTransform nextPrimeRect = nextPrimeInstance.GetComponent<RectTransform>();
+
+            if (nextPrimeRect != null)
+            {
+                nextPrimeRect.anchoredPosition = Vector2.zero;
+                nextPrimeRect.localScale = Vector3.one * 575;
+            }
+
+            TextMeshPro nextText = nextPrimeInstance.GetComponentInChildren<TextMeshPro>();
+            if (nextText != null)
+            {
+                nextText.text = nextPrime.ToString();
+                nextText.color = Color.Lerp(Color.magenta, Color.blue, 0.95f);
+                nextText.gameObject.SetActive(true);
+                nextText.alpha = 1f;
+            }
         }
-
-
-
-
-        if (targetRect != null && primeRect != null)
-        {
-            primeRect.DOAnchorPos3D(
-    new Vector3(targetRect.anchoredPosition.x, targetRect.anchoredPosition.y, -0.1f), flightDuration)
-    .SetEase(Ease.OutExpo)
-    .OnComplete(() =>
-    {
-        // Ensure the number appears in the right place
-        TextMeshPro text = targetBox.GetComponentInChildren<TextMeshPro>();
-        if (text != null)
-        {
-            text.text = primeValue.ToString();
-            text.color = Color.yellow;
-            text.gameObject.SetActive(true);
-        }
-
-        //  Shrink Effect AFTER reaching the position
-        primeInstance.transform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBounce); //  Shrinks smoothly
-
-        // Destroy the flying prime after landing
-        Destroy(primeInstance, 0.5f);
-
-        // Update primesPlaced
+        // Update primesPlaced count
         primesPlaced++;
-        Debug.Log($"Prime {primeValue} placed. primesPlaced = {primesPlaced}");
 
-        if (primesPlaced >= totalNotes)
+        //   "stacking" effect
+        yield return new WaitForSeconds(0.05f);
+
+        Vector2 targetUIPosition = ConvertToUIPosition(targetRect);
+
+        //  Move prime to the target position
+        yield return primeRect.DOAnchorPos(targetUIPosition, flightDuration)
+            .SetEase(Ease.OutExpo).WaitForCompletion();
+
+        //  Immediate Box Update
+        TextMeshPro boxText = targetRect.GetComponentInChildren<TextMeshPro>();
+        if (boxText != null)
         {
-            refToSOEPopup.CloseSOEPopup();
+            boxText.text = primeValue.ToString();
+            boxText.color = Color.yellow; // Highlight
+            boxText.gameObject.SetActive(true);
         }
 
-        if (primesPlaced == 15)
+        //  Shrink animation and destroy the prime after landing
+        yield return primeInstance.transform.DOScale(Vector3.one, 0.3f)
+            .SetEase(Ease.OutBounce).WaitForCompletion();
+        Destroy(primeInstance);
+
+
+
+        if (primesPlaced == 16)
         {
-            ShowAllPrimes();
-            ShowPrimesText();
-        }
-    });
-
+            StartCoroutine(ShowPrimesFlashingSequence());
+            yield break;
         }
 
+        //  Start next prime's animation
+        if (nextPrimeInstance != null)
+        {
+            yield return StartCoroutine(AnimatePrimeIntoBox(nextPrime));
+        }
     }
-    private IEnumerator ClosePopupWithDelay(float delay)
+
+
+
+
+    private IEnumerator ShowPrimesFlashingSequence()
     {
-        yield return new WaitForSeconds(delay);
+        Debug.Log("Starting SOE Flashing Sequence.");
+
+        // Ensure "Primes 0-49" text is visible initially
+        primesText.gameObject.SetActive(true);
+        primesText.text = "Primes 0-49";
+
+        ShowPrimesText();
+
+        //  Ensure it stays visible at the end
+        primesText.DOKill();
+        primesText.color = new Color(primesText.color.r, primesText.color.g, primesText.color.b, 1);
+
+        Debug.Log("SOE Flashing Sequence Completed.");
+
+        //  Close Popup After Sequence Completes
+        yield return new WaitForSeconds(1f);
         refToSOEPopup.CloseSOEPopup();
     }
 
+    private void HideAllPrimes()
+    {
+        foreach (var num in numberObjects)
+        {
+            TextMeshPro text = num.Value.GetComponentInChildren<TextMeshPro>();
+
+            if (primeFinder.primes.Contains(num.Key))
+            {
+                text.DOFade(0f, 1.0f); // Smooth fade out of prime numbers
+            }
+        }
+    }
+
+
+
+    private Vector2 ConvertToUIPosition(RectTransform target)
+    {
+        Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(null, target.position);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(spawnPoint as RectTransform, screenPoint, null, out Vector2 uiPosition);
+        return uiPosition;
+    }
+
+    private IEnumerator ClosePopupWithDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        // Ensure all primes are placed before closing SOE
+
+        Debug.Log("Closing SOE Popup after confirming all primes are placed.");
+        refToSOEPopup.CloseSOEPopup();
+        isSOEActive = false;
+    }
 
     private IEnumerator ShowMemoryEncodingPrompt()
     {
@@ -265,14 +418,14 @@ public class SOEGrid : MonoBehaviour
         // Flash effect for "Memory Encoding"
         Sequence memorySequence = DOTween.Sequence();
         memorySequence.Append(memoryEncodingText.DOFade(0f, 0.5f))
-                      .Append(memoryEncodingText.DOFade(1f, 0.5f))
-                      .SetLoops(-1);
+                    .Append(memoryEncodingText.DOFade(1f, 0.5f))
+                    .SetLoops(-1);
 
         // Flash effect for "Press Space"
         Sequence pressSequence = DOTween.Sequence();
         pressSequence.Append(pressSpaceText.DOFade(0f, 0.5f))
-                     .Append(pressSpaceText.DOFade(1f, 0.5f))
-                     .SetLoops(-1);
+                    .Append(pressSpaceText.DOFade(1f, 0.5f))
+                    .SetLoops(-1);
 
         waitingForSpace = true;
 
@@ -281,6 +434,8 @@ public class SOEGrid : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 waitingForSpace = false;
+                isSOEActive = false;
+
             }
             yield return null;
         }
@@ -302,9 +457,7 @@ public class SOEGrid : MonoBehaviour
         memoryEncodingText.gameObject.SetActive(true);
         pressSpaceText.gameObject.SetActive(true);
 
-        // Ensure text is fully visible when shown
-        memoryEncodingText.color = new Color(memoryEncodingText.color.r, memoryEncodingText.color.g, memoryEncodingText.color.b, 1);
-        pressSpaceText.color = new Color(pressSpaceText.color.r, pressSpaceText.color.g, pressSpaceText.color.b, 1);
+
     }
 
 
@@ -347,8 +500,8 @@ public class SOEGrid : MonoBehaviour
         // Start flashing effect
         Sequence flashSequence = DOTween.Sequence();
         flashSequence.Append(primesText.DOFade(0f, 0.5f))
-                     .Append(primesText.DOFade(1f, 0.5f))
-                     .SetLoops(-1);
+                    .Append(primesText.DOFade(1f, 0.5f))
+                    .SetLoops(-1);
     }
     public void ResetPrimes()
     {

@@ -26,12 +26,12 @@ public class Slidescript : MonoBehaviour
     // Slide timings
     private readonly double[] _slideTimings = 
     {
-        0.00, // Slide 0: Ultra Rapid Logo
-        1.00, // Slide 1
-        7.00, // Slide 2
-        13.00, // Slide 3
-        18.00, // Slide 4
-        23.00, // Slide 5
+        1.25, // Slide 0: Ultra Rapid Logo
+        3.65, // Slide 1
+        9.00, // Slide 2
+        14.50, // Slide 3
+        20.00, // Slide 4
+        25.75, // Slide 5
 
         112.00, // Return at 1:52
         118.00, // Slide 7 at 1:58
@@ -87,7 +87,8 @@ public class Slidescript : MonoBehaviour
         {
             yield return new WaitUntil(() => _audioManager.GetCurrentSongTime() >= _slideTimings[i]);
 
-            if (i == 0 && pulseFeedback != null)
+           
+            if (i == 1 && pulseFeedback != null)
             {
                 pulseFeedback.PlayFeedbacks();
             }

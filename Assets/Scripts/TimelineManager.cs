@@ -5,25 +5,28 @@ using System.Collections;
 public class TimelineManager : MonoBehaviour
 {
     public static TimelineManager Instance;
-    
+
     private AudioManager _audioManager;
-    private double dspStartTime;
 
     private bool transitionedToGameplay = false;
     private bool transitionedBackToSlideshow = false;
     private bool finalTransitioned = false;
+    private bool triggeredSOE = false;
+    private bool triggeredInstructions = false; // Track if the 0:46 popup has been shown
 
-    private const double SWITCH_TO_GAMEPLAY_TIME = 29.0;  // 0:29 → Switch to MainGameplayScene
-    private const double RETURN_TO_SLIDESHOW_TIME = 112.0; // 1:52 → Return to SlideshowScene
-    private const double FINAL_SCENE_TRANSITION = 122.0;  // 2:02 → Back to MainGameplayScene
+    private const double SWITCH_TO_GAMEPLAY_TIME = 29.0;
+    private const double INSTRUCTIONS_TIME = 45.0; // Show popup at 0:46
+    private const double INSTRUCTIONS_END_TIME = 57.25; // Hide popup at 0:57
+    private const double SOE_TRIGGER_TIME = 84.0;
+    private const double RETURN_TO_SLIDESHOW_TIME = 112.0;
+    private const double FINAL_SCENE_TRANSITION = 128.0;
 
     void Awake()
     {
-        // Ensure only one instance of TimelineManager exists
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // Prevents it from being destroyed when switching scenes
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -32,7 +35,7 @@ public class TimelineManager : MonoBehaviour
         }
     }
 
-    void Start() 
+    void Start()
     {
         _audioManager = AudioManager.Instance;
         if (_audioManager == null)
@@ -40,13 +43,11 @@ public class TimelineManager : MonoBehaviour
             Debug.LogError("TimelineManager: No AudioManager found!");
             return;
         }
-
-        dspStartTime = AudioSettings.dspTime;
     }
 
     void Update()
     {
-        if (_audioManager == null) return;
+        if (_audioManager == null || !_audioManager.musicSource.isPlaying) return;
 
         double currentTime = _audioManager.GetCurrentSongTime();
 
@@ -54,6 +55,27 @@ public class TimelineManager : MonoBehaviour
         {
             transitionedToGameplay = true;
             Debug.Log("Switching to the MainGameplayScene at 0:29");
+            StartCoroutine(TransitionToScene("MainGameplayScene"));
+        }
+
+        if (currentTime >= INSTRUCTIONS_TIME && !triggeredInstructions)
+        {
+            triggeredInstructions = true;
+            Debug.Log("Triggering UI Popup at 0:46");
+            ShowInstructions();
+        }
+
+        if (currentTime >= INSTRUCTIONS_END_TIME && triggeredInstructions)
+        {
+            Debug.Log("Closing UI Popup at 0:57");
+            CloseInstructions();
+            triggeredInstructions = false;
+        }
+
+        if (currentTime >= SOE_TRIGGER_TIME && !triggeredSOE)
+        {
+            triggeredSOE = true;
+            Debug.Log("Triggering SOE Popup at 1:24");
             StartCoroutine(TransitionToScene("MainGameplayScene"));
         }
 
@@ -75,18 +97,64 @@ public class TimelineManager : MonoBehaviour
     private IEnumerator TransitionToScene(string sceneName)
     {
         Debug.Log($"TimelineManager: Transitioning to {sceneName}");
-        yield return new WaitForSeconds(0.6f); // Short delay before switching
-
+        yield return new WaitForSeconds(0.2f);
         SceneManager.LoadScene(sceneName);
     }
+
     public void SkipToGameplay()
-{
-    if (!transitionedToGameplay)
     {
-        transitionedToGameplay = true;
-        Debug.Log("Skipping slideshow, switching to MainGameplayScene now!");
-        StartCoroutine(TransitionToScene("MainGameplayScene"));
+        if (!transitionedToGameplay)
+        {
+            transitionedToGameplay = true;
+            Debug.Log("Skipping slideshow, switching to MainGameplayScene now!");
+            StartCoroutine(TransitionToScene("MainGameplayScene"));
+        }
     }
+
+  private void TriggerSOEPopup()
+{
+    if (FindObjectOfType<SOEGrid>().isSOEActive)
+    {
+        Debug.Log("SOE is already active. Skipping duplicate trigger.");
+        return;
+    }
+
+    StartCoroutine(DelayedSOEStart());
 }
 
+    private IEnumerator DelayedSOEStart()
+    {
+        yield return new WaitForSeconds(0f);
+        SOEGrid soeGrid = FindObjectOfType<SOEGrid>();
+        if (soeGrid != null)
+        {
+            soeGrid.StartSOESequence();
+        }
+        else
+        {
+            Debug.LogError("TimelineManager: SOEGrid not found!");
+        }
+    }
+
+    private void ShowInstructions()
+    {
+        GameObject Instructions = GameObject.Find("Instructions");
+        if (Instructions != null)
+        {
+            Instructions.SetActive(true);
+        }
+        else
+        {
+            
+        }
+    }
+
+    private void CloseInstructions()
+    {
+        GameObject Instructions = GameObject.Find("Instructions");
+        if (Instructions != null)
+        {
+            Instructions.SetActive(false);
+        }
+    }
 }

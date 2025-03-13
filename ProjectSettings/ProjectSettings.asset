@@ -140,7 +140,7 @@ PlayerSettings:
   loadStoreDebugModeEnabled: 0
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
-  bundleVersion: 0.035
+  bundleVersion: 0.038
   preloadedAssets:
   - {fileID: 11400000, guid: 5b9d13fb6f90757418a70bf1efe0936d, type: 2}
   - {fileID: 8300000, guid: b6caac1a295ef4448a664343ef961fb3, type: 3}
@@ -740,7 +740,7 @@ PlayerSettings:
   ps4IncludedModules: []
   ps4attribVROutputEnabled: 0
   monoEnv: 
-  splashScreenBackgroundSourceLandscape: {fileID: 21300000, guid: 76986c2dd2746d2408b57f1c08b6ea01, type: 3}
+  splashScreenBackgroundSourceLandscape: {fileID: 21300000, guid: b547c110ec5adf44c96a594d334f3e84, type: 3}
   splashScreenBackgroundSourcePortrait: {fileID: 0}
   blurSplashScreenBackground: 1
   spritePackerPolicy: 
@@ -804,7 +804,7 @@ PlayerSettings:
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
   metroPackageName: ULTRARAPID-MVP-Main
-  metroPackageVersion: 
+  metroPackageVersion: 1.0.0.0
   metroCertificatePath: 
   metroCertificatePassword: 
   metroCertificateSubject: 
@@ -812,7 +812,7 @@ PlayerSettings:
   metroCertificateNotAfter: 0000000000000000
   metroApplicationDescription: ULTRARAPID-MVP-Main
   wsaImages: {}
-  metroTileShortName: 
+  metroTileShortName: ULTRARAPID
   metroTileShowName: 0
   metroMediumTileShowName: 0
   metroLargeTileShowName: 0

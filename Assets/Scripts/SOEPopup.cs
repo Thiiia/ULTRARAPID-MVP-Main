@@ -46,7 +46,7 @@ public class SOEPopup : MonoBehaviour
             grid.ResetPrimes();
         }
 
-        yield return new WaitForSeconds(10);
+        yield return new WaitForSeconds(0);
     }
 
     public void CloseSOEPopup()

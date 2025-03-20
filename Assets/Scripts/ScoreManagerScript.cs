@@ -5,7 +5,7 @@ public class ScoreManagerScript : MonoBehaviour
 {
     public static ScoreManagerScript Instance;
 
-    public float totalMissionTime; // Song length in seconds
+    public string totalMissionTime; // Song length in seconds
     public int totalGameGems;
     public int perfectTimeGems;
     public int wellTimedGems;
@@ -13,8 +13,16 @@ public class ScoreManagerScript : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance == null) Instance = this;
-        else Destroy(gameObject);
+          // Singleton pattern: Only one instance persists
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     public void RegisterNoteHit(string hitType)
@@ -26,8 +34,8 @@ public class ScoreManagerScript : MonoBehaviour
         else if (hitType == "Miss") missedGems++;
     }
 
-    public void SetTotalMissionTime(float songLength)
+    public void SetTotalMissionTime(string formattedTime)
     {
-        totalMissionTime = songLength;
+        totalMissionTime = formattedTime;
     }
 }

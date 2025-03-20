@@ -26,7 +26,7 @@ public class AudioManager : MonoBehaviour
     {
         if (musicSource != null && musicSource.clip != null)
         {
-             ScoreManagerScript.Instance.SetTotalMissionTime(musicSource.clip.length);
+             
             songLength = musicSource.clip.length;
             dspStartTime = AudioSettings.dspTime;
             // Schedule the music to play immediately at the DSP time

@@ -30,7 +30,7 @@ public class Slidescript : MonoBehaviour
         3.65, // Slide 1
         9.00, // Slide 2
         14.50, // Slide 3
-        20.00, // Slide 4
+        20.1, // Slide 4
         25.75, // Slide 5
 
         112.00, // Return at 1:52

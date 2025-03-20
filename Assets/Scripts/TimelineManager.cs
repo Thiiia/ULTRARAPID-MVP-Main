@@ -15,13 +15,13 @@ public class TimelineManager : MonoBehaviour
     private bool triggeredInstructions = false; // Track if the 0:46 popup has been shown
     private bool welcometohighscore = false;
 
-    private const double SWITCH_TO_GAMEPLAY_TIME = 29.0;
-    private const double INSTRUCTIONS_TIME = 45.0; // Show popup at 0:46
+    private const double SWITCH_TO_GAMEPLAY_TIME = 31.0;
+    private const double INSTRUCTIONS_TIME = 46.0; // Show popup at 0:46
     private const double INSTRUCTIONS_END_TIME = 57.25; // Hide popup at 0:57
     private const double SOE_TRIGGER_TIME = 84.0;
     private const double RETURN_TO_SLIDESHOW_TIME = 112.0;
     private const double FINAL_SCENE_TRANSITION = 128.0;
-    
+
     private const double HIGHSCORE = 158.0;
 
     void Awake()
@@ -57,20 +57,20 @@ public class TimelineManager : MonoBehaviour
         if (currentTime >= SWITCH_TO_GAMEPLAY_TIME && !transitionedToGameplay)
         {
             transitionedToGameplay = true;
-            Debug.Log("Switching to the MainGameplayScene at 0:29");
+            // Debug.Log("Switching to the MainGameplayScene at 0:29");
             StartCoroutine(TransitionToScene("MainGameplayScene"));
         }
 
         if (currentTime >= INSTRUCTIONS_TIME && !triggeredInstructions)
         {
             triggeredInstructions = true;
-            Debug.Log("Triggering UI Popup at 0:46");
+            // Debug.Log("Triggering UI Popup at 0:46");
             ShowInstructions();
         }
 
         if (currentTime >= INSTRUCTIONS_END_TIME && triggeredInstructions)
         {
-            Debug.Log("Closing UI Popup at 0:57");
+            //  Debug.Log("Closing UI Popup at 0:57");
             CloseInstructions();
             triggeredInstructions = false;
         }
@@ -78,27 +78,30 @@ public class TimelineManager : MonoBehaviour
         if (currentTime >= SOE_TRIGGER_TIME && !triggeredSOE)
         {
             triggeredSOE = true;
-            Debug.Log("Triggering SOE Popup at 1:24");
+            // Debug.Log("Triggering SOE Popup at 1:24");
             StartCoroutine(TransitionToScene("MainGameplayScene"));
+            TriggerSOEPopup();
+            
         }
 
         if (currentTime >= RETURN_TO_SLIDESHOW_TIME && !transitionedBackToSlideshow)
         {
             transitionedBackToSlideshow = true;
-            Debug.Log("Returning to SlideshowScene at 1:52");
+            // Debug.Log("Returning to SlideshowScene at 1:52");
             StartCoroutine(TransitionToScene("Slideshow"));
         }
 
         if (currentTime >= FINAL_SCENE_TRANSITION && !finalTransitioned)
         {
             finalTransitioned = true;
-            Debug.Log("Final transition to MainGameplayScene at 2:08");
+            // Debug.Log("Final transition to MainGameplayScene at 2:08");
             StartCoroutine(TransitionToScene("MainGameplayScene"));
+            TriggerSOEPopup();
         }
-          if (currentTime >= HIGHSCORE && !welcometohighscore)
+        if (currentTime >= HIGHSCORE && !welcometohighscore)
         {
             welcometohighscore = true;
-            Debug.Log("transition to highscore scene at 2:38");
+            //  Debug.Log("transition to highscore scene at 2:38");
             StartCoroutine(TransitionToScene("Highscore"));
         }
     }
@@ -120,16 +123,25 @@ public class TimelineManager : MonoBehaviour
         }
     }
 
-  private void TriggerSOEPopup()
-{
-    if (FindObjectOfType<SOEGrid>().isSOEActive)
+    private void TriggerSOEPopup()
     {
-        Debug.Log("SOE is already active. Skipping duplicate trigger.");
-        return;
-    }
+        if (FindObjectOfType<SOEGrid>().isSOEActive)
+        {
+            Debug.Log("SOE is already active. Skipping duplicate trigger.");
+            return;
+        }
 
-    StartCoroutine(DelayedSOEStart());
-}
+        SOEGrid soeGrid = FindObjectOfType<SOEGrid>();
+        if (soeGrid != null && !soeGrid.isSOEActive)
+        {
+            soeGrid.StartSOESequence(); // 
+        }
+        else
+        {
+            Debug.LogError("TimelineManager: SOEGrid not found!");
+        }
+
+    }
 
     private IEnumerator DelayedSOEStart()
     {
@@ -154,7 +166,7 @@ public class TimelineManager : MonoBehaviour
         }
         else
         {
-            
+
         }
     }
 

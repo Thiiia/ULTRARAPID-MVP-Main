@@ -21,7 +21,7 @@ public class ImageFlasher : MonoBehaviour
     [Tooltip("Total duration of the flash sequence (in seconds)")]
     public float totalDuration = 3f;
     [Tooltip("Duration for fading out after the flash sequence (in seconds)")]
-    public float fadeDuration = 1f;
+    public float fadeDuration = 0.1f;
 
     private float flashInterval;
     private bool isFlashing = false;

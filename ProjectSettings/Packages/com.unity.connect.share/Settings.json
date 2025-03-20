@@ -4,7 +4,7 @@
             {
                 "type": "System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
                 "key": "buildOutputDirList",
-                "value": "{\"m_Value\":\"C:/Users/tboya/Documents/Work/UltraRapidV0.0375;X:/Ultra Rapid Builds/Ultra_Rapid_V0.35;X:/Ultra Rapid Builds/Ultra_Rapid_V.0325;X:/Ultra Rapid Builds/Ultra_Rapid_V0.03;X:/Ultra Rapid Builds/Dev Build;X:/Ultra Rapid Builds/Ultra_RapidV.03;X:/Ultra Rapid Builds/URV.0.03;X:/Ultra Rapid Builds/V0.03;X:/Ultra Rapid Builds/UltraRapidV.0.03;X:/Ultra Rapid Builds/UltraRapid Dev Build\"}"
+                "value": "{\"m_Value\":\"C:/Users/tboya/Documents/Work/UltraRapid3.8;C:/Users/tboya/Documents/Work/UltraRapidV0.0375;X:/Ultra Rapid Builds/Ultra_Rapid_V0.35;X:/Ultra Rapid Builds/Ultra_Rapid_V.0325;X:/Ultra Rapid Builds/Ultra_Rapid_V0.03;X:/Ultra Rapid Builds/Dev Build;X:/Ultra Rapid Builds/Ultra_RapidV.03;X:/Ultra Rapid Builds/URV.0.03;X:/Ultra Rapid Builds/V0.03;X:/Ultra Rapid Builds/UltraRapidV.0.03\"}"
             }
         ]
     }

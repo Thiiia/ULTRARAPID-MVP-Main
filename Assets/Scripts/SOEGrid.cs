@@ -228,7 +228,7 @@ private void OnDisable()
 
         primesPlaced++;
 
-        yield return new WaitForSeconds(0.05f);
+        yield return new WaitForSeconds(0.075f);
 
         Vector2 targetUIPosition = ConvertToUIPosition(targetRect);
 

@@ -5,6 +5,7 @@ using Sirenix.OdinInspector; // Odin namespace
 using System.IO; //  System.IO 
 using UnityEngine.Networking; // For WebGL compatibility
 using System.Collections; // For IEnumerator
+using System.Collections.Generic;
 using System;
 using UnityEngine.Events;
 
@@ -65,6 +66,7 @@ public class ChartLoaderTest : MonoBehaviour
     }
     private float firstNoteZPosition;
 
+    private HashSet<float> triggeredBeats = new HashSet<float>(); // Store triggered beats
     [TabGroup("Prefab Settings")]
     [SerializeField, Tooltip("Prefab for star power.")]
     private Transform _starPowerPrefab;
@@ -116,52 +118,52 @@ public class ChartLoaderTest : MonoBehaviour
     #endregion
 
     #region Start and Initialization
-   private void Start()
-{
-    if (AudioManager.Instance != null)
+    private void Start()
     {
-        // Use the persistent audio values.
-        songLength = AudioManager.Instance.songLength;
-        double dspTime = AudioManager.Instance.dspStartTime;
-        Debug.Log($"Song Length: {songLength} seconds (from AudioManager)");
-        
-        if (CameraMovement != null)
+        if (AudioManager.Instance != null)
         {
-            CameraMovement.InitializeFromAudioManager();
+            // Use the persistent audio values.
+            songLength = AudioManager.Instance.songLength;
+            double dspTime = AudioManager.Instance.dspStartTime;
+            Debug.Log($"Song Length: {songLength} seconds (from AudioManager)");
+
+            if (CameraMovement != null)
+            {
+                CameraMovement.InitializeFromAudioManager();
+            }
+            else
+            {
+                Debug.LogError("CameraMovement script is not assigned or found.");
+            }
         }
         else
         {
-            Debug.LogError("CameraMovement script is not assigned or found.");
+            // Fallback: if there's no AudioManager, use this AudioSource.
+            if (Music.clip != null)
+            {
+                songLength = Music.clip.length;
+                Debug.Log($"Song Length: {songLength} seconds");
+            }
+            else
+            {
+                Debug.LogError("Music clip is not assigned to the AudioSource.");
+            }
+
+            double dspTime = AudioSettings.dspTime;
+            Music.PlayScheduled(dspTime);
+
+            if (CameraMovement != null)
+            {
+                CameraMovement.InitializeFromAudioManager();
+            }
+            else
+            {
+                Debug.LogError("CameraMovement script is not assigned or found.");
+            }
         }
+
+        LoadAndInitializeChart();
     }
-    else
-    {
-        // Fallback: if there's no AudioManager, use this AudioSource.
-        if (Music.clip != null)
-        {
-            songLength = Music.clip.length;
-            Debug.Log($"Song Length: {songLength} seconds");
-        }
-        else
-        {
-            Debug.LogError("Music clip is not assigned to the AudioSource.");
-        }
-
-        double dspTime = AudioSettings.dspTime;
-        Music.PlayScheduled(dspTime);
-
-        if (CameraMovement != null)
-        {
-            CameraMovement.InitializeFromAudioManager();
-        }
-        else
-        {
-            Debug.LogError("CameraMovement script is not assigned or found.");
-        }
-    }
-
-    LoadAndInitializeChart();
-}
 
 
     public void LoadAndInitializeChart()
@@ -255,40 +257,40 @@ public class ChartLoaderTest : MonoBehaviour
         }
     }
 
-   public IEnumerator LoadChartWebGL(string chartPath)
-{
-    Debug.Log($"🌍 WebGL Loading Chart from: {chartPath}");
-
-    using (UnityWebRequest uwr = UnityWebRequest.Get(chartPath))
+    public IEnumerator LoadChartWebGL(string chartPath)
     {
-        yield return uwr.SendWebRequest();
+        Debug.Log($"🌍 WebGL Loading Chart from: {chartPath}");
 
-        if (uwr.result == UnityWebRequest.Result.Success)
+        using (UnityWebRequest uwr = UnityWebRequest.Get(chartPath))
         {
-            string chartData = uwr.downloadHandler.text;
-            Debug.Log($"✅ WebGL Loaded Chart. Size: {chartData.Length} characters.");
+            yield return uwr.SendWebRequest();
 
-            yield return new WaitForSeconds(0.1f); // ✅ Ensure full file is processed
-
-            ChartReader chartReader = new ChartReader();
-            Chart = chartReader.ParseChartText(chartData);
-
-            if (Chart != null)
+            if (uwr.result == UnityWebRequest.Result.Success)
             {
-                Debug.Log($"🎵 Chart successfully initialized! Sections: {Chart.Notes.Keys.Count}");
-                InitializeChartContent();
+                string chartData = uwr.downloadHandler.text;
+                Debug.Log($"✅ WebGL Loaded Chart. Size: {chartData.Length} characters.");
+
+                yield return new WaitForSeconds(0.1f); // ✅ Ensure full file is processed
+
+                ChartReader chartReader = new ChartReader();
+                Chart = chartReader.ParseChartText(chartData);
+
+                if (Chart != null)
+                {
+                    Debug.Log($"🎵 Chart successfully initialized! Sections: {Chart.Notes.Keys.Count}");
+                    InitializeChartContent();
+                }
+                else
+                {
+                    Debug.LogError("❌ WebGL failed to parse chart.");
+                }
             }
             else
             {
-                Debug.LogError("❌ WebGL failed to parse chart.");
+                Debug.LogError($"❌ WebGL failed to load chart. Error: {uwr.error}");
             }
         }
-        else
-        {
-            Debug.LogError($"❌ WebGL failed to load chart. Error: {uwr.error}");
-        }
     }
-}
 
     private bool _isChartInitialized = false;
 
@@ -345,7 +347,7 @@ public class ChartLoaderTest : MonoBehaviour
         else
         {
             Debug.LogWarning("Notes parent object or notes are missing.");
-        
+
         }
 
         // Start the Song
@@ -407,40 +409,43 @@ public class ChartLoaderTest : MonoBehaviour
         }
     }
 
- private void SpawnNotes(Note[] notes)
-{
-    Debug.Log($"Spawning {notes.Length} notes...");
-    
-
-    foreach (Note note in notes)
+    private void SpawnNotes(Note[] notes)
     {
-        float z = (note.Seconds * Speed) + firstNoteZPosition; // Adjust Z with offset
+        Debug.Log($"Spawning {notes.Length} notes...");
 
-        for (int i = 0; i < SolidNotes.Length; i++)
+
+        foreach (Note note in notes)
         {
-            if (note.ButtonIndexes[i])
+            float z = (note.Seconds * Speed) + firstNoteZPosition; // Adjust Z with offset
+
+            for (int i = 0; i < SolidNotes.Length; i++)
             {
-                Transform noteTmp = Instantiate(SolidNotes[i], transform);
-                noteTmp.localPosition = new Vector3(i - 1.5f, 0, z);
-
-                NoteFactorSpawner spawner = noteTmp.GetComponent<NoteFactorSpawner>();
-                if (spawner != null)
+                if (note.ButtonIndexes[i])
                 {
-                    double expectedHitTime = CameraMovement.SongStartTime + (noteTmp.localPosition.z / Speed);
-                    spawner.expectedHitTime = (float)expectedHitTime;
+                    Transform noteTmp = Instantiate(SolidNotes[i], transform);
+                    noteTmp.localPosition = new Vector3(i - 1.5f, 0, z);
 
-                    Debug.Log($"🎵 Beat Assigned to {noteTmp.name} | Expected Hit Time: {expectedHitTime}");
+                    NoteFactorSpawner spawner = noteTmp.GetComponent<NoteFactorSpawner>();
+                    if (spawner != null)
+                    {
+                        double expectedHitTime = CameraMovement.SongStartTime + (noteTmp.localPosition.z / Speed);
+                        spawner.expectedHitTime = (float)expectedHitTime;
 
-                    StartCoroutine(TriggerBeatOnTime(note.Seconds));
-                }
-                else
-                {
-                    Debug.LogError($"NoteFactorSpawner not found on note {noteTmp.name}");
+                        Debug.Log($"🎵 Beat Assigned to {noteTmp.name} | Expected Hit Time: {expectedHitTime}");
+
+                        if (note.Seconds >= AudioManager.Instance.GetCurrentSongTime())
+                        {
+                            StartCoroutine(TriggerBeatOnTime(note.Seconds));
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError($"NoteFactorSpawner not found on note {noteTmp.name}");
+                    }
                 }
             }
         }
     }
-}
 
 
 
@@ -454,7 +459,7 @@ public class ChartLoaderTest : MonoBehaviour
     {
         CameraMovement.Speed = Speed;
         CameraMovement.enabled = true;
-        
+
     }
 
     private void PlayMusic() => Music.Play();
@@ -480,20 +485,26 @@ public class ChartLoaderTest : MonoBehaviour
         }
     }
 
+
     private IEnumerator TriggerBeatOnTime(float noteTime)
-{
-    float startTime = (float)AudioSettings.dspTime;
-    float delay = noteTime - (float)(AudioSettings.dspTime - startTime);
-
-    if (delay > 0)
-        yield return new WaitForSeconds(delay);
-
-    if (OnBeat != null)
     {
-        Debug.Log($"🎵 Beat Triggered at {noteTime}");
-        OnBeat.Invoke(); // ✅ Fire beat event dynamically
+        float currentSongTime = (float)AudioManager.Instance.GetCurrentSongTime();
+
+        float delay = noteTime - currentSongTime;
+
+        if (delay > 0)
+            yield return new WaitForSeconds(delay);
+        else
+        {
+            // 🛑 Skip beat that's already in the past
+            Debug.Log($"⏩ Skipping past beat at {noteTime}, current time is {currentSongTime}");
+            yield break;
+        }
+
+        ChartLoaderTest.OnBeat?.Invoke();
     }
-}
+
+
 
 
     private void SetHOPO(Transform note)
@@ -521,7 +532,7 @@ public class ChartLoaderTest : MonoBehaviour
         Path = ""; // Reset the path
         _isChartInitialized = false;
     }
-  
+
     #endregion
 
 }

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 using UnityEngine;
 using TMPro;
 using DG.Tweening;
@@ -27,38 +28,47 @@ public class SOEGrid : MonoBehaviour
     private bool waitingForSpace = false;
     public bool firstTimePlaying;
     public bool isSOEActive = false;
+    private bool soeRepeated = false;
+    private double lastTriggeredBeat = -1; // Store the last beat time
 
     private SOEPopup refToSOEPopup;
     public Color refToColor;
 
     void Awake()
     {
-        
+
     }
+    private void OnEnable()
+{
+    ChartLoaderTest.OnBeat += OnBeatTriggered;
+}
+
+private void OnDisable()
+{
+    ChartLoaderTest.OnBeat -= OnBeatTriggered;
+}
     void Start()
     {
         GenerateGrid();
-        
+
         gridParent.gameObject.SetActive(false);
 
         if (!ImageFlasher.hasRunOnce)
         {
             Invoke(nameof(WaitTillNoDeer), 5.4f);
-            
+
             firstTimePlaying = false;
         }
         else
         {
             Invoke(nameof(WaitTillNoDeer), 0f);
-            
-           
+
+
         }
 
         refToSOEPopup = GameObject.Find("SOE_Popup").GetComponentInChildren<SOEPopup>();
         RectTransform spawnRect = spawnPoint.GetComponent<RectTransform>();
         if (spawnRect != null) spawnRect.anchoredPosition = new Vector2(0, 150);
-
-        ChartLoaderTest.OnBeat += OnBeatTriggered;
         ResetPrimes();
         StartCoroutine(ShowMemoryEncodingPrompt());
     }
@@ -101,61 +111,64 @@ public class SOEGrid : MonoBehaviour
         isSOEActive = true;
 
         refToSOEPopup.ToggleSOEPopup();
-        ResetPrimes();
-        OnBeatTriggered(); 
+        ResetPrimes(); // Fully reset primes before starting
+
         StartCoroutine(ShowMemoryEncodingPrompt());
-        StartCoroutine(ClosePopupWithDelay(12f));
+        StartCoroutine(ClosePopupWithDelay(ImageFlasher.hasRunOnce ? 6f : 12f));
+
+        Debug.Log("🎵 Triggering Animation Immediately...");
+
     }
+   private IEnumerator RepeatSOESequence()
+{
+    Debug.Log("🔄 Resetting SOE for second animation cycle...");
+
+    ResetPrimes();
+
+    // Safely re-subscribe just in case
+    ChartLoaderTest.OnBeat -= OnBeatTriggered;
+    ChartLoaderTest.OnBeat += OnBeatTriggered;
+
+    yield return new WaitForSeconds(0.2f); // small buffer
+
+    Debug.Log("🎵 Repeating SOE animation sequence...");
+    OnBeatTriggered(); // Kick off next prime animation
+}
+
+
+
+
+
 
     private bool beatsShouldTrigger = true;
 
-private void OnBeatTriggered()
-{
-    if (!beatsShouldTrigger || isAnimating) return;
-
-    // Get the current time using DSP time
-    double currentTime = AudioManager.Instance.GetCurrentSongTime();
-
-    // Ensure we are triggering only for upcoming beats
-    int primeToAnimate = GetNextPrime();
-    if (primeToAnimate == -1)
+    private void OnBeatTriggered()
     {
-        beatsShouldTrigger = false;
-        StartCoroutine(ClosePopupWithDelay(1.25f));
-        return;
-    }
+        if (!beatsShouldTrigger || isAnimating) return;
 
-    // Debugging to check where we are in the song
-    Debug.Log($"Current Time (DSP): {currentTime} | Next Prime: {primeToAnimate}");
+        // Get current song time from DSP
+        double currentTime = AudioManager.Instance.GetCurrentSongTime();
 
-    // Skip any primes that are already in the past
-    while (primeToAnimate < currentTime)
-    {
-        Debug.Log($"Skipping past beat: {primeToAnimate} (Current DSP Time: {currentTime})");
-        
-        // Move to the next available beat
-        primeToAnimate = GetNextPrime();
+        // don't process the same beat multiple times
+        if (Math.Abs(currentTime - lastTriggeredBeat) < 0.05) // Small buffer 
+            return;
 
-        // If no more primes exist, stop triggering beats
+        lastTriggeredBeat = currentTime; // Update last beat time
+
+        // Call GetNextPrime() to get the correct prime number
+        int primeToAnimate = GetNextPrime();
+
         if (primeToAnimate == -1)
         {
-            beatsShouldTrigger = false;
-            return;
+            Debug.Log("No more primes to animate.");
+            StartCoroutine(ShowPrimesFlashingSequence());
+            return; // Stop if no primes are left
         }
+
+        Debug.Log($"🎵 Valid Beat Triggered at {currentTime} | Prime to Animate: {primeToAnimate}");
+
+        StartCoroutine(AnimatePrimeIntoBox(primeToAnimate));
     }
-
-    // Now that we've found a valid beat, add it to the queue
-    if (!primeQueue.Contains(primeToAnimate))
-        primeQueue.Enqueue(primeToAnimate);
-
-    // Process the next prime in queue
-    if (primeQueue.Count > 0)
-    {
-        int nextPrime = primeQueue.Dequeue();
-        StartCoroutine(AnimatePrimeIntoBox(nextPrime));
-    }
-}
-
 
 
     private int GetNextPrime()
@@ -172,14 +185,35 @@ private void OnBeatTriggered()
         if (!numberObjects.ContainsKey(primeValue)) yield break;
         if (spawnPoint == null) yield break;
 
-        RectTransform targetRect = numberObjects[primeValue].GetComponent<RectTransform>();
+        GameObject targetObject = numberObjects[primeValue];
+        if (targetObject == null) yield break;
+
+        RectTransform targetRect = targetObject.GetComponent<RectTransform>();
         if (targetRect == null) yield break;
 
-        foreach (Transform child in spawnPoint) Destroy(child.gameObject);
+        // Kill any existing tweens to prevent conflicts
+        DOTween.Kill(targetRect);
 
+        // Destroy old children safely
+        foreach (Transform child in spawnPoint)
+        {
+            if (child != null)
+            {
+                DOTween.Kill(child);
+                Destroy(child.gameObject);
+            }
+        }
+
+        // Create a new prime safely
         GameObject primeInstance = Instantiate(numberPrefab, spawnPoint);
         primeInstance.transform.SetParent(spawnPoint, false);
         RectTransform primeRect = primeInstance.GetComponent<RectTransform>();
+
+        if (primeRect == null)
+        {
+            Destroy(primeInstance);
+            yield break;
+        }
 
         primeRect.anchoredPosition = Vector2.zero;
         primeRect.localScale = Vector3.one * 575;
@@ -190,21 +224,24 @@ private void OnBeatTriggered()
         {
             primeText.text = primeValue.ToString();
             primeText.color = new Color(255 / 255f, 219 / 255f, 237 / 255f);
-            
         }
-        var shapeComponent = primeInstance.GetComponentInChildren<Shapes.Rectangle>();
-            if (shapeComponent != null)
-            {
-                primeText.sortingOrder= 2;
-                shapeComponent.SortingOrder = 1; 
-            }
-
 
         primesPlaced++;
+
         yield return new WaitForSeconds(0.05f);
 
         Vector2 targetUIPosition = ConvertToUIPosition(targetRect);
-        yield return primeRect.DOAnchorPos(targetUIPosition, flightDuration).SetEase(Ease.OutExpo).WaitForCompletion();
+
+        // Ensure no duplicate tweens run
+        if (DOTween.IsTweening(primeRect))
+        {
+            Debug.Log("⚠ Tween already running, skipping duplicate animation.");
+            yield break;
+        }
+
+        yield return primeRect.DOAnchorPos(targetUIPosition, flightDuration)
+                             .SetEase(Ease.OutExpo)
+                             .WaitForCompletion();
 
         TextMeshPro boxText = targetRect.GetComponentInChildren<TextMeshPro>();
         if (boxText != null)
@@ -213,23 +250,64 @@ private void OnBeatTriggered()
             boxText.color = Color.yellow;
         }
 
-        yield return primeInstance.transform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBounce).WaitForCompletion();
-        Destroy(primeInstance);
-         primeQueue = new Queue<int>(primeQueue.Where(x => x != primeValue));
+        if (primeInstance != null)
+        {
+            yield return primeInstance.transform.DOScale(Vector3.one, 0.3f)
+                                               .SetEase(Ease.OutBounce)
+                                               .WaitForCompletion();
+            Destroy(primeInstance);
+        }
 
-        if (primesPlaced == 16) StartCoroutine(ShowPrimesFlashingSequence());
+        primeQueue = new Queue<int>(primeQueue.Where(x => x != primeValue));
+
+        //  If all primes have been placed, proceed to SOE completion logic
+        if (primesPlaced == 15) HandleSOECompletion();
     }
+
+
+
+    private void HandleSOECompletion()
+    {
+        Debug.Log("Checking if SOE should repeat...");
+
+        // First-time player? Start the repeat cycle instead of closing
+        if (!ImageFlasher.hasRunOnce && !soeRepeated)
+        {
+            Debug.Log("First-time SOE: repeat pending, skipping close.");
+            StartCoroutine(ShowPrimesFlashingSequence()); // This will repeat instead of close
+        }
+        else
+        {
+            Debug.Log("SOE already ran or not first time, closing.");
+            StartCoroutine(ShowPrimesFlashingSequence()); // fallback close
+        }
+    }
+
+
+
 
     private IEnumerator ShowPrimesFlashingSequence()
     {
-        primesText.gameObject.SetActive(true);
-        primesText.text = "Primes 0-49";
         ShowPrimesText();
-        primesText.DOKill();
-        primesText.color = new Color(primesText.color.r, primesText.color.g, primesText.color.b, 1);
-        yield return new WaitForSeconds(1f);
-        refToSOEPopup.CloseSOEPopup();
+
+        yield return new WaitForSeconds(0);
+
+        Debug.Log("Finished pulsing primes text. Evaluating what to do next...");
+
+        if (!ImageFlasher.hasRunOnce && !soeRepeated)
+        {
+            Debug.Log("First-time SOE detected, repeating animation...");
+            soeRepeated = true; // set BEFORE repeat
+            yield return RepeatSOESequence();
+            yield break;
+        }
+
+        // ✅ Close popup only after everything's truly done
+        Debug.Log("Closing SOE popup after primes animation.");
+        StartCoroutine(ClosePopupWithDelay(1.5f));
     }
+
+
 
     private Vector2 ConvertToUIPosition(RectTransform target)
     {
@@ -241,9 +319,11 @@ private void OnBeatTriggered()
     private IEnumerator ClosePopupWithDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
+
         ResetPrimes();
         refToSOEPopup.CloseSOEPopup();
         isSOEActive = false;
+        soeRepeated = false;
     }
 
     private IEnumerator ShowMemoryEncodingPrompt()
@@ -291,26 +371,31 @@ private void OnBeatTriggered()
         pressSpaceText.gameObject.SetActive(false);
     }
  public void ShowPrimesText()
-    {
-        primesText.gameObject.SetActive(true);
-        primesText.text = "Primes 0-49";
-
-        // Kill any existing animations before applying a new one
-        DOTween.Kill(primesText);
-
-        // Start flashing effect
-        Sequence flashSequence = DOTween.Sequence();
-        flashSequence.Append(primesText.DOFade(0f, 0.5f))
-                    .Append(primesText.DOFade(1f, 0.5f))
-                    .SetLoops(-1);
-    }
-   public void ResetPrimes()
 {
-    primesPlaced = 0;
-    beatsShouldTrigger = true;
-    primeQueue.Clear(); 
-    // Re-sort and reset primes so the sequence starts fresh
-    List<int> orderedPrimes = new List<int>(primeFinder.primes);
-    orderedPrimes.Sort();
+    if (primesText == null) return;
+
+    primesText.gameObject.SetActive(true);
+    primesText.text = "Primes 0-49";
+    primesText.alpha = 1f;
+
+    DOTween.Kill(primesText);
+
+    primesText.DOFade(0.3f, 0.6f)
+              .SetEase(Ease.InOutSine)
+              .SetLoops(-1, LoopType.Yoyo);
 }
+
+    public void ResetPrimes()
+    {
+        Debug.Log(" Resetting Primes & Clearing Tweens...");
+
+        primesPlaced = 0;
+        beatsShouldTrigger = true;
+        primeQueue.Clear();
+
+        // Kill all DOTween tweens
+        DOTween.Kill(memoryEncodingText);
+        DOTween.Kill(pressSpaceText);
+        DOTween.Kill(primesText);
+    }
 }

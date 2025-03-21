@@ -110,6 +110,7 @@ public class TimelineManager : MonoBehaviour
     {
         Debug.Log($"TimelineManager: Transitioning to {sceneName}");
         yield return new WaitForSeconds(0f);
+        PlayerPrefs.Save();
         SceneManager.LoadScene(sceneName);
     }
 

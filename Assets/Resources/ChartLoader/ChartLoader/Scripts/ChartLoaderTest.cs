@@ -268,9 +268,9 @@ public class ChartLoaderTest : MonoBehaviour
             if (uwr.result == UnityWebRequest.Result.Success)
             {
                 string chartData = uwr.downloadHandler.text;
-                Debug.Log($"✅ WebGL Loaded Chart. Size: {chartData.Length} characters.");
+                Debug.Log($" WebGL Loaded Chart. Size: {chartData.Length} characters.");
 
-                yield return new WaitForSeconds(0.1f); // ✅ Ensure full file is processed
+                yield return new WaitForSeconds(0.1f); // Ensure full file is processed
 
                 ChartReader chartReader = new ChartReader();
                 Chart = chartReader.ParseChartText(chartData);
@@ -311,7 +311,7 @@ public class ChartLoaderTest : MonoBehaviour
 
         if (notes.Length == 0)
         {
-            Debug.LogError("🚨 Chart loaded, but NO NOTES found! Parsing issue?");
+            Debug.LogError(" Chart loaded, but NO NOTES found! Parsing issue?");
         }
 
         // Spawn Notes
@@ -411,6 +411,7 @@ public class ChartLoaderTest : MonoBehaviour
 
     private void SpawnNotes(Note[] notes)
     {
+        List<int> factorPool = new List<int> { 120, 12, 10, 5, 2, 3, 4};
         Debug.Log($"Spawning {notes.Length} notes...");
 
 
@@ -430,6 +431,7 @@ public class ChartLoaderTest : MonoBehaviour
                     {
                         double expectedHitTime = CameraMovement.SongStartTime + (noteTmp.localPosition.z / Speed);
                         spawner.expectedHitTime = (float)expectedHitTime;
+                        spawner.AssignFactorFromList(factorPool);
 
                         Debug.Log($"🎵 Beat Assigned to {noteTmp.name} | Expected Hit Time: {expectedHitTime}");
 
@@ -496,7 +498,7 @@ public class ChartLoaderTest : MonoBehaviour
             yield return new WaitForSeconds(delay);
         else
         {
-            // 🛑 Skip beat that's already in the past
+            // Skip beat that's already in the past
             Debug.Log($"⏩ Skipping past beat at {noteTime}, current time is {currentSongTime}");
             yield break;
         }

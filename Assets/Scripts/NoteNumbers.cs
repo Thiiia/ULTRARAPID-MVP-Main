@@ -24,8 +24,8 @@ public class NoteFactorSpawner : MonoBehaviour
     void Start()
     {
         spawnTime = (float)AudioSettings.dspTime; // Use DSP time for audio accuracy
-        GenerateFactors(specifiedNumber);
-        AssignRandomFactor();
+        //GenerateFactors(specifiedNumber);
+        //AssignRandomFactor();
     }
 
     // Generate all factors of the specified number
@@ -61,6 +61,19 @@ public class NoteFactorSpawner : MonoBehaviour
             Debug.LogError("No factors generated. Check the specified number.");
         }
     }
+    public void AssignFactorFromList(List<int> predefinedFactors)
+{
+    if (predefinedFactors != null && predefinedFactors.Count > 0)
+    {
+        assignedFactor = predefinedFactors[Random.Range(0, predefinedFactors.Count)];
+        DisplayFactorOnNote();
+    }
+    else
+    {
+        Debug.LogError("Predefined factor list is empty or null.");
+    }
+}
+
 
     // Display the assigned factor on the note using TextMeshPro (3D)
     private void DisplayFactorOnNote()

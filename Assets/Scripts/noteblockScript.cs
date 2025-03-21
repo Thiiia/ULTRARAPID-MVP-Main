@@ -538,13 +538,14 @@ public class NoteBlockScript : MonoBehaviour
 
     void TriggerNodeFullFeedback(Transform node)
     {
-
+        FactorDataManagerScript.SetFull(node.name, true);
         TextMeshProUGUI nodeText = node.GetComponent<TextMeshProUGUI>();
         if (nodeText != null && nodeText.alpha == 1f) // Only proceed if the text is visible
         {
             // Highlight the node with a glow effect
             GameObject glowEffect = Instantiate(fullIndicatorPrefab, node);
             glowEffect.name = "FullIndicator";
+            
 
             RectTransform indicatorRect = glowEffect.GetComponent<RectTransform>();
             if (indicatorRect != null)

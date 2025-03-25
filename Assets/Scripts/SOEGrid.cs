@@ -121,12 +121,12 @@ public class SOEGrid : MonoBehaviour
             StartCoroutine(ClosePopupWithDelay(6f));
         }
 
-        Debug.Log("🎵 Triggering Animation Immediately...");
+        Debug.Log("Triggering Animation Immediately...");
 
     }
     private IEnumerator RepeatSOESequence()
     {
-        Debug.Log("🔄 Resetting SOE for second animation cycle...");
+        Debug.Log("Resetting SOE for second animation cycle...");
 
         ResetPrimes();
 
@@ -136,7 +136,7 @@ public class SOEGrid : MonoBehaviour
 
         yield return new WaitForSeconds(0.2f); // small buffer
 
-        Debug.Log("🎵 Repeating SOE animation sequence...");
+        Debug.Log("Repeating SOE animation sequence...");
         OnBeatTriggered(); // Kick off next prime animation
     }
 
@@ -322,7 +322,7 @@ public class SOEGrid : MonoBehaviour
             yield break;
         }
 
-        // ✅ Close popup only after everything's truly done
+        //  Close popup only after everything's truly done
         Debug.Log("Closing SOE popup after primes animation.");
         StartCoroutine(ClosePopupWithDelay(2f));
     }

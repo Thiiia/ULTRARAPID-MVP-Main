@@ -29,6 +29,7 @@ public class SOEGrid : MonoBehaviour
     public bool firstTimePlaying;
     public bool isSOEActive = false;
     private bool soeRepeated = false;
+    private bool completionStarted = false;
     private double lastTriggeredBeat = -1; // Store the last beat time
 
     private SOEPopup refToSOEPopup;
@@ -39,19 +40,20 @@ public class SOEGrid : MonoBehaviour
 
     }
     private void OnEnable()
-{
-    ChartLoaderTest.OnBeat += OnBeatTriggered;
-}
+    {
+        ChartLoaderTest.OnBeat += OnBeatTriggered;
+    }
 
-private void OnDisable()
-{
-    ChartLoaderTest.OnBeat -= OnBeatTriggered;
-}
+    private void OnDisable()
+    {
+        ChartLoaderTest.OnBeat -= OnBeatTriggered;
+    }
     void Start()
     {
         GenerateGrid();
 
         gridParent.gameObject.SetActive(false);
+        primesText.gameObject.SetActive(false);
 
         if (!ImageFlasher.hasRunOnce)
         {
@@ -114,26 +116,29 @@ private void OnDisable()
         ResetPrimes(); // Fully reset primes before starting
 
         StartCoroutine(ShowMemoryEncodingPrompt());
-        StartCoroutine(ClosePopupWithDelay(ImageFlasher.hasRunOnce ? 6f : 12f));
+        if (ImageFlasher.hasRunOnce)
+        {
+            StartCoroutine(ClosePopupWithDelay(6f));
+        }
 
         Debug.Log("🎵 Triggering Animation Immediately...");
 
     }
-   private IEnumerator RepeatSOESequence()
-{
-    Debug.Log("🔄 Resetting SOE for second animation cycle...");
+    private IEnumerator RepeatSOESequence()
+    {
+        Debug.Log("🔄 Resetting SOE for second animation cycle...");
 
-    ResetPrimes();
+        ResetPrimes();
 
-    // Safely re-subscribe just in case
-    ChartLoaderTest.OnBeat -= OnBeatTriggered;
-    ChartLoaderTest.OnBeat += OnBeatTriggered;
+        // Safely re-subscribe just in case
+        ChartLoaderTest.OnBeat -= OnBeatTriggered;
+        ChartLoaderTest.OnBeat += OnBeatTriggered;
 
-    yield return new WaitForSeconds(0.2f); // small buffer
+        yield return new WaitForSeconds(0.2f); // small buffer
 
-    Debug.Log("🎵 Repeating SOE animation sequence...");
-    OnBeatTriggered(); // Kick off next prime animation
-}
+        Debug.Log("🎵 Repeating SOE animation sequence...");
+        OnBeatTriggered(); // Kick off next prime animation
+    }
 
 
 
@@ -220,10 +225,20 @@ private void OnDisable()
         primeRect.localPosition += new Vector3(0, 0, -0.2f * primesPlaced);
 
         TextMeshPro primeText = primeInstance.GetComponentInChildren<TextMeshPro>();
+        var shapeComponent = primeInstance.GetComponentInChildren<Shapes.Rectangle>();
+        if (shapeComponent != null)
+        {
+
+            shapeComponent.SortingOrder = 1;
+        }
         if (primeText != null)
         {
             primeText.text = primeValue.ToString();
-            primeText.color = new Color(255 / 255f, 219 / 255f, 237 / 255f);
+            primeText.sortingOrder = 2;
+            if (!soeRepeated)
+                primeText.color = new Color(255 / 255f, 219 / 255f, 237 / 255f);
+            else
+                primeText.color = Color.red;
         }
 
         primesPlaced++;
@@ -268,20 +283,23 @@ private void OnDisable()
 
     private void HandleSOECompletion()
     {
+        if (completionStarted) return;
+        completionStarted = true;
+
         Debug.Log("Checking if SOE should repeat...");
 
-        // First-time player? Start the repeat cycle instead of closing
-        if (!ImageFlasher.hasRunOnce && !soeRepeated)
+        if (!soeRepeated)
         {
             Debug.Log("First-time SOE: repeat pending, skipping close.");
-            StartCoroutine(ShowPrimesFlashingSequence()); // This will repeat instead of close
+            StartCoroutine(ShowPrimesFlashingSequence());
         }
         else
         {
             Debug.Log("SOE already ran or not first time, closing.");
-            StartCoroutine(ShowPrimesFlashingSequence()); // fallback close
+            StartCoroutine(ShowPrimesFlashingSequence());
         }
     }
+
 
 
 
@@ -294,17 +312,19 @@ private void OnDisable()
 
         Debug.Log("Finished pulsing primes text. Evaluating what to do next...");
 
-        if (!ImageFlasher.hasRunOnce && !soeRepeated)
+        if (!soeRepeated)
         {
             Debug.Log("First-time SOE detected, repeating animation...");
-            soeRepeated = true; // set BEFORE repeat
+
+            soeRepeated = true;
+            ResetPrimes();
             yield return RepeatSOESequence();
             yield break;
         }
 
         // ✅ Close popup only after everything's truly done
         Debug.Log("Closing SOE popup after primes animation.");
-        StartCoroutine(ClosePopupWithDelay(1.5f));
+        StartCoroutine(ClosePopupWithDelay(2f));
     }
 
 
@@ -320,10 +340,11 @@ private void OnDisable()
     {
         yield return new WaitForSeconds(delay);
 
+        HidePrimesText();
         ResetPrimes();
         refToSOEPopup.CloseSOEPopup();
         isSOEActive = false;
-        soeRepeated = false;
+
     }
 
     private IEnumerator ShowMemoryEncodingPrompt()
@@ -337,26 +358,10 @@ private void OnDisable()
                       .Append(memoryEncodingText.DOFade(1f, 0.5f))
                       .SetLoops(-1);
 
-        Sequence pressSequence = DOTween.Sequence();
-        pressSequence.Append(pressSpaceText.DOFade(0f, 0.5f))
-                     .Append(pressSpaceText.DOFade(1f, 0.5f))
-                     .SetLoops(-1);
+        pressSpaceText.gameObject.SetActive(false);
 
-        waitingForSpace = true;
 
-        while (waitingForSpace)
-        {
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                waitingForSpace = false;
-                isSOEActive = false;
-            }
-            yield return null;
-        }
-
-        memorySequence.Kill();
-        pressSequence.Kill();
-        HidePromptText();
+        yield return null;
     }
 
     private void ShowPromptText()
@@ -370,20 +375,29 @@ private void OnDisable()
         memoryEncodingText.gameObject.SetActive(false);
         pressSpaceText.gameObject.SetActive(false);
     }
- public void ShowPrimesText()
-{
-    if (primesText == null) return;
+    public void ShowPrimesText()
+    {
+        if (primesText == null) return;
 
-    primesText.gameObject.SetActive(true);
-    primesText.text = "Primes 0-49";
-    primesText.alpha = 1f;
+        primesText.gameObject.SetActive(true);
+        primesText.text = "Primes 0-49";
+        primesText.alpha = 1f;
 
-    DOTween.Kill(primesText);
+        DOTween.Kill(primesText);
 
-    primesText.DOFade(0.3f, 0.6f)
-              .SetEase(Ease.InOutSine)
-              .SetLoops(-1, LoopType.Yoyo);
-}
+        Sequence primeSequence = DOTween.Sequence();
+        primeSequence.Append(primesText.DOFade(0f, 0.5f))
+                      .Append(primesText.DOFade(1f, 0.5f))
+                      .SetLoops(-1);
+
+    }
+    private void HidePrimesText()
+    {
+        if (primesText == null) return;
+
+        DOTween.Kill(primesText);
+        primesText.gameObject.SetActive(false);
+    }
 
     public void ResetPrimes()
     {
@@ -392,6 +406,20 @@ private void OnDisable()
         primesPlaced = 0;
         beatsShouldTrigger = true;
         primeQueue.Clear();
+        completionStarted = false;
+        // Clear prime numbers visually from grid
+        foreach (int prime in primeFinder.primes)
+        {
+            if (numberObjects.TryGetValue(prime, out GameObject obj))
+            {
+                TextMeshPro tmp = obj.GetComponentInChildren<TextMeshPro>();
+                if (tmp != null)
+                {
+                    tmp.text = "";
+                    tmp.color = Color.white; // or refToColor if needed
+                }
+            }
+        }
 
         // Kill all DOTween tweens
         DOTween.Kill(memoryEncodingText);

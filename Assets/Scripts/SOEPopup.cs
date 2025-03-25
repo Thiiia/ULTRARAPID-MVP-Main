@@ -9,10 +9,7 @@ public class SOEPopup : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            CloseSOEPopup();
-        }
+      
     }
 
     public void ToggleSOEPopup()

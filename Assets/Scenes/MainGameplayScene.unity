@@ -18953,7 +18953,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   difficulty: 3
   _speed: 8.2
-  _path: Charts\Positions.chart
+  _path: Charts\Positions3.0.chart
   _solidNotes:
   - {fileID: 4400627473677722, guid: 1045ea66b790bf540bcf5df207972c83, type: 3}
   - {fileID: 4626359991842112, guid: 01b9310d07202bd43aae6dead229c865, type: 3}

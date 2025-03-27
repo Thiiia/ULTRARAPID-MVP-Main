@@ -163,7 +163,7 @@ public class TimelineManager : MonoBehaviour
         GameObject Instructions = GameObject.Find("Instructions");
         if (Instructions != null)
         {
-            Instructions.SetActive(true);
+          //  Instructions.SetActive(true);
         }
         else
         {

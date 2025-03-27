@@ -13,6 +13,9 @@ public class SOEGrid : MonoBehaviour
     public Transform spawnPoint;
     public Transform gridParent;
     public SOEPrimeFinder primeFinder;
+    private static bool hasStartedTutorial = false;
+    [SerializeField] private SOEFeedbackSpawner feedbackSpawner;
+
 
     [Header("UI Elements")]
     public TextMeshProUGUI memoryEncodingText;
@@ -28,7 +31,7 @@ public class SOEGrid : MonoBehaviour
     private bool waitingForSpace = false;
     public bool firstTimePlaying;
     public bool isSOEActive = false;
-    private bool soeRepeated = false;
+    public static bool soeRepeated = false;
     private bool completionStarted = false;
     private double lastTriggeredBeat = -1; // Store the last beat time
 
@@ -74,6 +77,14 @@ public class SOEGrid : MonoBehaviour
         ResetPrimes();
         StartCoroutine(ShowMemoryEncodingPrompt());
     }
+    void Update()
+    {
+        if (isSOEActive && Input.GetKeyDown(KeyCode.Space))
+        {
+            RegisterSOEInput(); // Spacebar during da SOE
+        }
+    }
+
 
     private void OnDestroy()
     {
@@ -344,6 +355,11 @@ public class SOEGrid : MonoBehaviour
         ResetPrimes();
         refToSOEPopup.CloseSOEPopup();
         isSOEActive = false;
+        if (!hasStartedTutorial && TutorialDirector.Instance != null)
+        {
+            hasStartedTutorial = true;
+            TutorialDirector.Instance.StartCinematic();
+        }
 
     }
 
@@ -383,7 +399,6 @@ public class SOEGrid : MonoBehaviour
         primesText.text = "Primes 0-49";
         primesText.alpha = 1f;
 
-        DOTween.Kill(primesText);
 
         Sequence primeSequence = DOTween.Sequence();
         primeSequence.Append(primesText.DOFade(0f, 0.5f))
@@ -398,10 +413,21 @@ public class SOEGrid : MonoBehaviour
         DOTween.Kill(primesText);
         primesText.gameObject.SetActive(false);
     }
+    private void RegisterSOEInput()
+    {
+        // GNoteblocks object
+        NoteBlockScript greenNoteHandler = GameObject.Find("GNoteblocks")?.GetComponent<NoteBlockScript>();
+        if (greenNoteHandler != null)
+        {
+            greenNoteHandler.CheckHit();
+        }
+    }
 
     public void ResetPrimes()
     {
         Debug.Log(" Resetting Primes & Clearing Tweens...");
+        NoteBlockScript noteHandler = GameObject.Find("GNoteblocks")?.GetComponent<NoteBlockScript>();
+        if (noteHandler != null) noteHandler.ResetSOEFeedbackBlocks();
 
         primesPlaced = 0;
         beatsShouldTrigger = true;

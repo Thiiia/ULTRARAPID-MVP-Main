@@ -9,6 +9,12 @@ using MoreMountains.Feedbacks;
 
 public class NoteBlockScript : MonoBehaviour
 {
+    [SerializeField] private GameObject feedbackBlockGreen;
+    [SerializeField] private GameObject feedbackBlockYellow;
+    [SerializeField] private GameObject feedbackBlockRed;
+    [SerializeField] private RectTransform uiFeedbackSpawnZone;
+
+    private int feedbackSpawnedThisSession = 0;
     public XplorerGuitarInput RefToInputController;
     public GameObject[] RefToNoteblocks;
     public enum NoteBlockType { GNoteblocks, DNoteblocks }
@@ -205,7 +211,7 @@ public class NoteBlockScript : MonoBehaviour
             // Determine the hit type based on timing thresholds
             if (timingDifference <= perfectThreshold)
             {
-                
+
                 DisplayFeedback("Perfect");
                 InteractWithNoteInTrigger(note.GetComponent<Collider>());
             }
@@ -545,7 +551,7 @@ public class NoteBlockScript : MonoBehaviour
             // Highlight the node with a glow effect
             GameObject glowEffect = Instantiate(fullIndicatorPrefab, node);
             glowEffect.name = "FullIndicator";
-            
+
 
             RectTransform indicatorRect = glowEffect.GetComponent<RectTransform>();
             if (indicatorRect != null)
@@ -566,12 +572,12 @@ public class NoteBlockScript : MonoBehaviour
         }
     }
 
-    void DisplayFeedback(string feedbackType)
+    public void DisplayFeedback(string feedbackType)
     {
-          if (ScoreManagerScript.Instance != null)
-    {
-        ScoreManagerScript.Instance.RegisterNoteHit(feedbackType);
-    }
+        if (ScoreManagerScript.Instance != null)
+        {
+            ScoreManagerScript.Instance.RegisterNoteHit(feedbackType);
+        }
         if (feedbackTextUI != null)
         {
             // Kill any existing tweens to prevent overlapping animations
@@ -623,6 +629,53 @@ public class NoteBlockScript : MonoBehaviour
         {
             Debug.LogWarning($"Feedback type '{feedbackType}' triggered, but feedbackTextUI is not assigned.");
         }
+        SpawnSOEFeedbackBlock(feedbackType);
+    }
+
+    private void SpawnSOEFeedbackBlock(string feedbackType)
+    {
+        if (!SOEGrid.soeRepeated && feedbackSpawnedThisSession >= 30) return;
+        if (SOEGrid.soeRepeated && feedbackSpawnedThisSession >= 15) return;
+
+        GameObject blockPrefab = null;
+
+        switch (feedbackType)
+        {
+            case "Perfect":
+                blockPrefab = feedbackBlockGreen;
+                break;
+            case "Good":
+                blockPrefab = feedbackBlockYellow;
+                break;
+            case "Miss":
+                blockPrefab = feedbackBlockRed;
+                break;
+        }
+
+        if (blockPrefab != null && uiFeedbackSpawnZone != null)
+        {
+            GameObject block = Instantiate(blockPrefab, uiFeedbackSpawnZone);
+            RectTransform blockRect = block.GetComponent<RectTransform>();
+
+            if (blockRect != null)
+            {
+                float spacingX = 55f;
+                float rowHeight = -60f;
+                int row = feedbackSpawnedThisSession / 15;
+                int col = feedbackSpawnedThisSession % 15;
+
+                blockRect.anchoredPosition = new Vector2(col * spacingX, row * rowHeight);
+                blockRect.localScale = Vector3.one; // Just in case prefab scale is off
+                blockRect.localRotation = Quaternion.identity;
+            }
+
+            feedbackSpawnedThisSession++;
+        }
+    }
+
+    public void ResetSOEFeedbackBlocks()
+    {
+        feedbackSpawnedThisSession = 0;
     }
 
 

@@ -14,7 +14,7 @@ public class SOEGrid : MonoBehaviour
     public Transform gridParent;
     public SOEPrimeFinder primeFinder;
     private static bool hasStartedTutorial = false;
-    [SerializeField] private SOEFeedbackSpawner feedbackSpawner;
+    [SerializeField] private NoteBlockScript NoteHandler;
 
 
     [Header("UI Elements")]
@@ -40,16 +40,18 @@ public class SOEGrid : MonoBehaviour
 
     void Awake()
     {
-
+       
     }
     private void OnEnable()
     {
         ChartLoaderTest.OnBeat += OnBeatTriggered;
+        isSOEActive=true;
     }
 
     private void OnDisable()
     {
         ChartLoaderTest.OnBeat -= OnBeatTriggered;
+        isSOEActive = false;
     }
     void Start()
     {
@@ -335,7 +337,7 @@ public class SOEGrid : MonoBehaviour
 
         //  Close popup only after everything's truly done
         Debug.Log("Closing SOE popup after primes animation.");
-        StartCoroutine(ClosePopupWithDelay(2f));
+        StartCoroutine(ClosePopupWithDelay(2.75f));
     }
 
 
@@ -349,10 +351,12 @@ public class SOEGrid : MonoBehaviour
 
     private IEnumerator ClosePopupWithDelay(float delay)
     {
+        
         yield return new WaitForSeconds(delay);
-
-        HidePrimesText();
+     HidePrimesText();
+        
         ResetPrimes();
+        
         refToSOEPopup.CloseSOEPopup();
         isSOEActive = false;
         if (!hasStartedTutorial && TutorialDirector.Instance != null)
@@ -374,7 +378,13 @@ public class SOEGrid : MonoBehaviour
                       .Append(memoryEncodingText.DOFade(1f, 0.5f))
                       .SetLoops(-1);
 
-        pressSpaceText.gameObject.SetActive(false);
+
+
+        Sequence pressSequence = DOTween.Sequence();
+        pressSequence.Append(pressSpaceText.DOFade(0f, 0.5f))
+                      .Append(pressSpaceText.DOFade(1f, 0.5f))
+                      .SetLoops(-1);
+        
 
 
         yield return null;
@@ -394,40 +404,41 @@ public class SOEGrid : MonoBehaviour
     public void ShowPrimesText()
     {
         if (primesText == null) return;
+          DOTween.Kill("PrimesTextFade");
 
         primesText.gameObject.SetActive(true);
         primesText.text = "Primes 0-49";
         primesText.alpha = 1f;
 
 
-        Sequence primeSequence = DOTween.Sequence();
-        primeSequence.Append(primesText.DOFade(0f, 0.5f))
-                      .Append(primesText.DOFade(1f, 0.5f))
-                      .SetLoops(-1);
+        Sequence primeSequence = DOTween.Sequence().SetId("PrimesTextFade");
+primeSequence.Append(primesText.DOFade(0f, 0.5f))
+             .Append(primesText.DOFade(1f, 0.5f))
+             .SetLoops(-1);
 
     }
     private void HidePrimesText()
     {
         if (primesText == null) return;
 
-        DOTween.Kill(primesText);
+        DOTween.Kill("PrimesTextFade");
         primesText.gameObject.SetActive(false);
     }
     private void RegisterSOEInput()
     {
-        // GNoteblocks object
-        NoteBlockScript greenNoteHandler = GameObject.Find("GNoteblocks")?.GetComponent<NoteBlockScript>();
-        if (greenNoteHandler != null)
+        //  GNoteblocks object
+        
+        if (NoteHandler != null)
         {
-            greenNoteHandler.CheckHit();
+            NoteHandler.CheckHit();
         }
     }
 
     public void ResetPrimes()
     {
         Debug.Log(" Resetting Primes & Clearing Tweens...");
-        NoteBlockScript noteHandler = GameObject.Find("GNoteblocks")?.GetComponent<NoteBlockScript>();
-        if (noteHandler != null) noteHandler.ResetSOEFeedbackBlocks();
+        
+        if (NoteHandler != null) NoteHandler.ResetSOEFeedbackBlocks();
 
         primesPlaced = 0;
         beatsShouldTrigger = true;
@@ -450,6 +461,6 @@ public class SOEGrid : MonoBehaviour
         // Kill all DOTween tweens
         DOTween.Kill(memoryEncodingText);
         DOTween.Kill(pressSpaceText);
-        DOTween.Kill(primesText);
+        
     }
 }

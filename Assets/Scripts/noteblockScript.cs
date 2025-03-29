@@ -14,7 +14,9 @@ public class NoteBlockScript : MonoBehaviour
     [SerializeField] private GameObject feedbackBlockRed;
     [SerializeField] private RectTransform uiFeedbackSpawnZone;
 
-    private int feedbackSpawnedThisSession = 0;
+    
+    private int soeFeedbackCount = 0;
+
     public XplorerGuitarInput RefToInputController;
     public GameObject[] RefToNoteblocks;
     public enum NoteBlockType { GNoteblocks, DNoteblocks }
@@ -37,6 +39,7 @@ public class NoteBlockScript : MonoBehaviour
     public Camera GMainCamera;
     public Camera DMainCamera;
     private AudioSource audioSource;
+    [SerializeField] private SOEGrid refToSOEGrid;
 
     [Header("Timing Thresholds")]
     public float missThreshold = 0.5f;    // Time deviation for a miss
@@ -148,6 +151,11 @@ public class NoteBlockScript : MonoBehaviour
             KillTweens(noteTransform); // Stop any ongoing animations or tweens
             Destroy(noteTransform.gameObject); // Destroy the world-space note
             Debug.Log($"Destroyed {noteTransform.name} on trigger exit.");
+            if (refToSOEGrid != null && refToSOEGrid.isSOEActive)
+            {
+                DisplayFeedback("Miss"); // Spawn red block
+                Debug.Log("HIIIIIIIII");
+            }
         }
     }
 
@@ -200,35 +208,31 @@ public class NoteBlockScript : MonoBehaviour
         NoteFactorSpawner spawner = note.GetComponent<NoteFactorSpawner>();
         if (spawner == null) return;
 
-        double currentDspTime = AudioSettings.dspTime;
-        float triggerWidth = GetComponentInChildren<BoxCollider>().bounds.size.z;
-        ChartLoaderTest chartLoader = FindObjectOfType<ChartLoaderTest>();
+        float timingDifference = Mathf.Abs(spawner.GetTimingDifference());
+        string hitType = "Miss";
 
-        if (chartLoader != null)
+        if (timingDifference <= perfectThreshold) hitType = "Perfect";
+        else if (timingDifference <= goodThreshold) hitType = "Good";
+
+        // Always show feedback block during SOE
+        if (refToSOEGrid != null && refToSOEGrid.isSOEActive)
         {
-            float timingDifference = Mathf.Abs(spawner.GetTimingDifference());
-
-            // Determine the hit type based on timing thresholds
-            if (timingDifference <= perfectThreshold)
-            {
-
-                DisplayFeedback("Perfect");
-                InteractWithNoteInTrigger(note.GetComponent<Collider>());
-            }
-            else if (timingDifference <= goodThreshold)
-            {
-                DisplayFeedback("Good");
-                InteractWithNoteInTrigger(note.GetComponent<Collider>());
-            }
-            else
-            {
-                DisplayFeedback("Miss");
-            }
-
-            activeNotes.Remove(note);
-            Destroy(note.gameObject);
+            DisplayFeedback(hitType);
         }
+        else
+        {
+            DisplayFeedback(hitType);
+
+            if (hitType != "Miss")
+            {
+                InteractWithNoteInTrigger(note.GetComponent<Collider>());
+            }
+        }
+
+        activeNotes.Remove(note);
+        Destroy(note.gameObject);
     }
+
 
 
     // Handle interactions
@@ -633,49 +637,42 @@ public class NoteBlockScript : MonoBehaviour
     }
 
     private void SpawnSOEFeedbackBlock(string feedbackType)
+{
+    if (!SOEGrid.soeRepeated && soeFeedbackCount >= 30) return;
+    if (SOEGrid.soeRepeated && soeFeedbackCount >= 15) return;
+
+    GameObject blockPrefab = feedbackType switch
     {
-        if (!SOEGrid.soeRepeated && feedbackSpawnedThisSession >= 30) return;
-        if (SOEGrid.soeRepeated && feedbackSpawnedThisSession >= 15) return;
+        "Perfect" => feedbackBlockGreen,
+        "Good" => feedbackBlockYellow,
+        "Miss" => feedbackBlockRed,
+        _ => null
+    };
 
-        GameObject blockPrefab = null;
+    if (blockPrefab != null && uiFeedbackSpawnZone != null)
+    {
+        GameObject block = Instantiate(blockPrefab, uiFeedbackSpawnZone);
+        RectTransform blockRect = block.GetComponent<RectTransform>();
 
-        switch (feedbackType)
+        if (blockRect != null)
         {
-            case "Perfect":
-                blockPrefab = feedbackBlockGreen;
-                break;
-            case "Good":
-                blockPrefab = feedbackBlockYellow;
-                break;
-            case "Miss":
-                blockPrefab = feedbackBlockRed;
-                break;
+            float spacingX = 55f;
+            float rowHeight = 1000f;
+            int row = soeFeedbackCount / 15;
+            int col = soeFeedbackCount % 15;
+
+            blockRect.anchoredPosition = new Vector2(col * spacingX, row * rowHeight);
+            blockRect.localScale = Vector3.one;
+            blockRect.localRotation = Quaternion.identity;
         }
 
-        if (blockPrefab != null && uiFeedbackSpawnZone != null)
-        {
-            GameObject block = Instantiate(blockPrefab, uiFeedbackSpawnZone);
-            RectTransform blockRect = block.GetComponent<RectTransform>();
-
-            if (blockRect != null)
-            {
-                float spacingX = 55f;
-                float rowHeight = -60f;
-                int row = feedbackSpawnedThisSession / 15;
-                int col = feedbackSpawnedThisSession % 15;
-
-                blockRect.anchoredPosition = new Vector2(col * spacingX, row * rowHeight);
-                blockRect.localScale = Vector3.one; // Just in case prefab scale is off
-                blockRect.localRotation = Quaternion.identity;
-            }
-
-            feedbackSpawnedThisSession++;
-        }
+        soeFeedbackCount++; 
     }
-
+}
     public void ResetSOEFeedbackBlocks()
     {
-        feedbackSpawnedThisSession = 0;
+        
+        soeFeedbackCount = 0;
     }
 
 

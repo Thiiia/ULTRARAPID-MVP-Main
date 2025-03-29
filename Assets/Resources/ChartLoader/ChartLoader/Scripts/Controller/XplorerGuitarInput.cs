@@ -5,6 +5,8 @@ using System.Collections;
 public class XplorerGuitarInput : MonoBehaviour
 {
     [Header("Debug Settings")]
+    private SOEGrid soeRef;
+
     public bool DebugController = false;
 
     [FoldoutGroup("Button Mappings")]
@@ -53,12 +55,32 @@ public class XplorerGuitarInput : MonoBehaviour
     [FoldoutGroup("Key States")]
     [GUIColor(1f, 0.647f, 0f)] // Orange for pressed
     public bool orange;
+    void Start()
+{
+    soeRef = FindObjectOfType<SOEGrid>();
+}
 
     // Update is called once per frame
     void Update()
     {
         // GetControllerInput(); <---- disabled for now
         GetKeyboardInput();
+         if (soeRef != null && soeRef.isSOEActive)
+    {
+        // SOE mode active → space only (mapped to green)
+        green = Input.GetKey(KeyCode.Space);
+        red = false;
+        yellow = false;
+        blue = false;
+    }
+    else
+    {
+        // Normal gameplay
+        green = Input.GetKey(KeyCode.A);
+        red = Input.GetKey(KeyCode.S);
+        yellow = Input.GetKey(KeyCode.D);
+        blue = Input.GetKey(KeyCode.F);
+    }
     }
 
     // Retrieves the current keyboard input.

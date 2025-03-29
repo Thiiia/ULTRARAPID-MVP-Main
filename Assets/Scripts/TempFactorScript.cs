@@ -148,17 +148,18 @@ public class TempFactorScript : MonoBehaviour
         }
     }
 
-    void OnApplicationQuit()
-    {
-        Debug.Log("Application quitting - saving preferences!");
+  void OnApplicationQuit()
+{
+    Debug.Log("Application quitting - saving preferences!");
 
-        #if UNITY_EDITOR
-        UnityEditor.EditorPrefs.DeleteKey("SessionStarted"); // Reset session flag in Editor
-        #endif
+    #if UNITY_EDITOR
+    UnityEditor.EditorPrefs.DeleteKey("SessionStarted");
+    #endif
 
-        #if UNITY_WEBGL
-        PlayerPrefs.Save();
-        SaveWebGLPrefs(); // Force browser to save data
-        #endif
-    }
+    #if UNITY_WEBGL && !UNITY_EDITOR
+    PlayerPrefs.Save();
+    SaveWebGLPrefs(); 
+    #endif
+}
+
 }
